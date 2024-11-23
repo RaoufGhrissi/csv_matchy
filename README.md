@@ -56,7 +56,8 @@ First you need to copy the `src` folder from this repository to your angular app
 In this example, this is my project structure
 ![alt text](image-4.png)
 
-1- create a new componenet
+1- create a new component (⚠️ ⚠️ ⚠️ ⚠️ don't name it matchy, details: "app-matchy" is already defined here https://github.com/RaoufGhrissi/csv_matchy/blob/9151790e44e84f0d83c93f691aa2bb2ae3923e72/src/main.ts#L613)
+
 2- your html file
 ```html
 <div id="matchy"></div>
@@ -104,77 +105,32 @@ export class MyComponent implements OnInit {
     ];
 
     const matchy = new Matchy(options);
-
     document.getElementById("matchy")?.appendChild(matchy);
+
+    // Submit method should be overriden to implemnt your logic 
+    matchy.submit = async(data:any) => {
+      // use data and send it to your api
+    };
   }
 }
 ```
 
 ## Using Matchy with React
 
-1- create a TS file containg some classes and enums to be able to create the options or copy them directly from src folder.
 
-```ts
-export enum Comparer {
-    gt = "gt",
-    gte = "gte",
-    lt = "lt",
-    lte = "lte",
-    e = "e",
-    in = "in",
-}
-
-export enum ConditonProperty {
-    value = "value",
-    regex = "regex",
-    length = "length",
-}
-
-export enum FieldType {
-    float = "float",
-    integer = "integer",
-    string = "string",
-    bool = "bool",
-}
-
-export class Condition {
-    property: ConditonProperty;
-    comparer: Comparer;
-    value: number | string | string[];
-    custom_fail_message: string | null;
-
-    constructor(property: ConditonProperty, value: number | string | string[], comparer: Comparer = Comparer.e, custom_fail_message: string | null = null) {
-        this.property = property;
-        this.comparer = comparer;
-        this.value = value;
-        this.custom_fail_message = custom_fail_message;
-    }
-}
-
-export class Option {
-    display_value: string;
-    value: string | null;
-    mandatory: boolean;
-    type: FieldType;
-    conditions: Condition[];
-
-    constructor(display_value: string = "", value: string | null  = null, mandatory: boolean = false, type: FieldType = FieldType.string, conditions: Condition[] = []) {
-        this.display_value = display_value;
-        this.mandatory = mandatory;
-        this.type = type;
-        this.value = value;
-        this.conditions = conditions;
-    }
-}
-
-```
+1- First you need to copy the `src` folder from this repository to your react app.
+ create a TS file and import some classes and enums from matchy to be able to create the options.
 
 2- Create the component which will use matchy
 
 ```ts
-import { Matchy } from "path_to_matchy/src/main";
+import { Matchy } from "src/libs/matchy/src/main";
 import { useEffect, useRef } from "react";
-import { Condition, Option, Comparer, ConditonProperty, FieldType} from 'path_to_condition/condition';
+import { Condition } from 'src/libs/matchy/src/models/classes/condition';
+import { Option } from 'src/libs/matchy/src/models/classes/option';
+import { Comparer } from 'src/libs/matchy/src/models/enums/comparer';
+import { ConditonProperty } from 'src/libs/matchy/src/models/enums/conditon_property';
+import { FieldType } from 'src/libs/matchy/src/models/enums/field_type';
 
 const ComponentWithMatchy = () => {
   const matchyRef = useRef(null);
@@ -204,6 +160,11 @@ const ComponentWithMatchy = () => {
       if (!matchy_div.querySelector("app-matchy")) {
         // To prevent inserting 2 times in case you have React.StrictMode
         matchy_div.appendChild(new Matchy(options));
+        
+        // Submit method should be overriden to implemnt your logic 
+        matchy.submit = async(data:any) => {
+          // use data and send it to your api
+        };
       }
     }
   }, []);
