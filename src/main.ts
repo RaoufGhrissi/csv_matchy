@@ -503,7 +503,7 @@ export class Matchy extends HTMLElement {
         });
     }
 
-    async submit(data: any) {
+    async submit(data: UploadEntry) {
         console.log('this should be overriden');
     }
   
@@ -513,20 +513,20 @@ export class Matchy extends HTMLElement {
     }
   
     generateResult() {
-        const content = new UploadEntry();
+        const lines: { [key: string]: Cell; }[] = [];
         for (const [rowIndex, row] of this.rows.entries()) {
             if (this.deletedRows.has(rowIndex))
                 continue;
-            const data: Map<string, Cell> = new Map<string, Cell>();
+            const data: { [key: string]: Cell; } = {};
             for (const [colIndex, header] of this.cols.entries()) {
                 if (header.value == null)
                     continue;
 
-                data.set(header.value, new Cell(row[colIndex], rowIndex, colIndex));
+                data[header.value] = new Cell(row[colIndex], rowIndex, colIndex);
             }
-            content.lines.push(data);
+            lines.push(data);
         }
-        return content;
+        return new UploadEntry(lines);
     }
 
     checkCell(cellValue: string, option: Option) {

@@ -1,7 +1,9 @@
 import { Cell } from "./cell";
 
 export class UploadEntry {
-    lines: Map<string, Cell>[] = [];
+    lines: {[key: string]: Cell;} [] = [];
 
-    constructor() {}
+    constructor(lines: {[key: string]: Cell;} []) {
+        this.lines = lines;
+    }
 }
