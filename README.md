@@ -62,7 +62,7 @@ In this example, this is my project structure
 ```html
 <div id="matchy"></div>
 ```
-2- in your TS file
+3- in your TS file
 
 ```ts
 import { Component, OnInit } from '@angular/core';
@@ -73,13 +73,20 @@ import { Comparer } from 'src/libs/matchy/src/models/enums/comparer';
 import { ConditonProperty } from 'src/libs/matchy/src/models/enums/conditon_property';
 import { FieldType } from 'src/libs/matchy/src/models/enums/field_type';
 
-
+export interface MatchyWrongCell {
+    message: string
+    rowIndex: string
+    colIndex: string
+}
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class MyComponent implements OnInit {
+  warning?: string;
+  errors?: string;
+  wrongCells: MatchyWrongCell[] = [];
   title = 'matchy_test';
 
   ngOnInit() {
@@ -110,6 +117,33 @@ export class MyComponent implements OnInit {
     // Submit method should be overriden to implemnt your logic 
     matchy.submit = async(data:any) => {
       // use data and send it to your api
+
+      const success = false; // Hardcoded , get it from your api response 
+  
+      if (success) {
+        // do what you want
+      } else {
+        this.warning = data.warnings;
+        this.errors = data.errors;
+        this.wrongCells = data.wrong_cells ? data.wrong_cells : [];
+        // if you want to invalidate cells based on wrong cells received from your api response, 
+        // each td element in the table has col and row attributes, use matchyQuerySelectorAll() to get 
+        // the wrong cells and invalidate each one using markInvalidCell()
+        const patterns = [];
+        const message_per_cell = new Map<string, string>();
+        for (const cell of this.wrongCells) {
+          const rowIndex = cell.rowIndex;
+          const colIndex = cell.colIndex;
+          
+          patterns.push(`td[col="${colIndex}"][row="${rowIndex}"]`);
+          message_per_cell.set(`${colIndex}, ${rowIndex}`, cell.message);
+        }
+        matchy.matchyQuerySelectorAll(patterns.join(', ')).forEach((htmlCell) => {
+          const rowIndex = htmlCell.getAttribute("row");
+          const colIndex = htmlCell.getAttribute("col");
+          matchy.markInvalidCell(htmlCell, [message_per_cell.get(`${colIndex}, ${rowIndex}`)]);
+        })
+      }
     };
   }
 }
