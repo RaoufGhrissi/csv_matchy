@@ -21,11 +21,11 @@ export const ids = {
   preSubmitFile: "preSubmit",
   uploadFile: "upload",
   resetFile: "reset",
-  csvContent: "csvContent",
-  csvFile: "csvFile",
+  fileContent: "fileContent",
+  uploadedFile: "uploadedFile",
 };
 
-export const bootstrap = {
+export const bootstrap: { [key: string]: string }  = {
   row: "row",
   col: "col",
   container: "container",
