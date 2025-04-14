@@ -21,9 +21,14 @@
   },
   "homepage": "https://github.com/RaoufGhrissi/matchy#readme",
   "dependencies": {
-    "papaparse": "^5.4.1"
+    "@types/string-similarity": "^4.0.2",
+    "date-fns": "^4.1.0",
+    "read-excel-file": "^5.8.6",
+    "string-similarity": "^4.0.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/papaparse": "^5.3.14"
+    "@types/date-fns": "^2.6.3",
+    "@types/xlsx": "^0.0.36"
   }
 }

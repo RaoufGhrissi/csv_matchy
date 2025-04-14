@@ -1,5 +1,5 @@
-import { Comparer } from "../enums/comparer.js";
-import { ConditonProperty } from "../enums/conditon_property.js";
+import { Comparer } from "../enums/comparer";
+import { ConditonProperty } from "../enums/conditon_property";
 
 export class Condition {
     property: ConditonProperty;

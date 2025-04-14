@@ -1,5 +1,5 @@
-import { FieldType } from "../enums/field_type.js";
-import { Condition } from "./condition.js";
+import { FieldType } from "../enums/field_type";
+import { Condition } from "./condition";
 
 export class Option {
     display_value: string;
