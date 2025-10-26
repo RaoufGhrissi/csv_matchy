@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@types/date-fns": "^2.6.3",
-    "@types/xlsx": "^0.0.36"
+    "@types/xlsx": "^0.0.36",
+    "typescript": "^5.9.3"
   }
 }
