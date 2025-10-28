@@ -376,7 +376,7 @@ export class Matchy extends HTMLElement {
   }
 
   startEditMode(cell: any, rowIndex: number, colIndex: number) {
-    if (cell.classList.contains(editableCellClassName)) retutabrn;
+    if (cell.classList.contains(editableCellClassName)) return;
     this.currentSelectedcell = new SelectedCell(cell, rowIndex, colIndex);
     this.markValidCell(cell);
     const prevContent = cell.innerText;
