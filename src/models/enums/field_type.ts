@@ -3,4 +3,5 @@ export enum FieldType {
     integer = "integer",
     string = "string",
     bool = "bool",
+    date = "date"  // Date type added
 }

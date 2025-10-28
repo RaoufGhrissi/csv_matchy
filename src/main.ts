@@ -25,8 +25,8 @@ const editableCellClassName = "editableCell";
 const editedCellClassName = "editedCell";
 const invalidCellClassName = "invalidCell";
 
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+//(AK) tools to check date validity. To learn about each function -> https://date-fns.org/docs/Getting-Started
+import { format, parse, isValid, isAfter, isBefore, differenceInYears  } from "date-fns";
 
 import readXlsxFile from "read-excel-file";
 import * as stringSimilarity from "string-similarity";
@@ -376,7 +376,7 @@ export class Matchy extends HTMLElement {
   }
 
   startEditMode(cell: any, rowIndex: number, colIndex: number) {
-    if (cell.classList.contains(editableCellClassName)) retutabrn;
+    if (cell.classList.contains(editableCellClassName)) return; //fixed typo
     this.currentSelectedcell = new SelectedCell(cell, rowIndex, colIndex);
     this.markValidCell(cell);
     const prevContent = cell.innerText;
@@ -440,7 +440,7 @@ export class Matchy extends HTMLElement {
         cell.appendChild(text);
       }
       const cell = tableRow.insertCell();
-      const icon = createElement(tag.i, {}, [bootstrap["trashIcon"]], {
+      const icon = createElement(tag.i, {}, [], {
         click: () => {
           const confirmDelete = confirm(
             "Are you sure you want to delete this item ?"
@@ -451,6 +451,14 @@ export class Matchy extends HTMLElement {
           }
         },
       });
+
+      // Anas Khouaja (AK) - Updated the SVG icon to a trash bin for better clarity due to bootstrap icon issues
+      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>`
+                        ; 
+      icon.style.cursor = "pointer";
       cell.appendChild(icon);
     }
   }
@@ -480,8 +488,10 @@ export class Matchy extends HTMLElement {
     }
 
     table.innerHTML = "";
-    this.generateTableBody(table);
+    // Anas Khouaja (AK) fixed order issue
     this.generateTableHead(table);
+    this.generateTableBody(table);
+    /*==========================*/
     this.autoMatch();
   }
 
@@ -489,6 +499,11 @@ export class Matchy extends HTMLElement {
     const file = event.files[0];
     if (!file) return;
 
+    /* (AK) the 'read-excel-file' cannot read inline string cells properly, -> solution :
+      1. Make sure that the excel file doesn't contain inline string cells.
+      2. Use another library to read excel files that supports inline string cells like 'xlsx'.
+    resource -> https://npm-compare.com/excel4node,exceljs,read-excel-file,xlsx 
+    */
     readXlsxFile(file).then((rows: any) => {
       this.fileHeader = rows[0].map((item: any) => String(item));
       this.rows = rows
@@ -498,7 +513,7 @@ export class Matchy extends HTMLElement {
             cell == null
               ? ""
               : cell instanceof Date
-              ? format(cell, "dd/MM/yyyy", { locale: fr })
+              ? format(cell, "yyyy-mm-dd",{/*, { locale: fr }*/}) // Anas Khouaja (AK) I changed the date format to yyyy-mm-dd for database compatibility
               : cell
           )
         ) as string[][];
@@ -667,6 +682,14 @@ export class Matchy extends HTMLElement {
         Number(value),
         Number(condition.value)
       );
+    } else if (condition.property === ConditonProperty.date) {
+      const date = this.parseDate(value);
+      if (!date) return false;
+      
+      return (evaluateConditions[condition.comparer] as (x: number, y: number) => boolean)(
+        differenceInYears(new Date(), date),
+        Number(condition.value)
+      );
     } else if (condition.property === ConditonProperty.regex) {
       return this.checkRegExpConditions(value, String(condition.value));
     }
@@ -674,6 +697,28 @@ export class Matchy extends HTMLElement {
 
   checkRegExpConditions(value: string, conditionValue: string) {
     return evaluateConditions["regExp"](value, conditionValue);
+  }
+
+  //(AK) Validate date in format YYYY-MM-DD and between 1900-01-01 and today
+  private parseDate(value: string): Date | null {
+    const date = parse(value, 'yyyy-MM-dd', new Date());
+    
+    if (!isValid(date)) {
+      return null;
+    }
+  
+    const minDate = new Date(1900, 0, 1);
+    const today = new Date();
+    
+    if (isBefore(date, minDate) || isAfter(date, today)) {
+      return null;
+    }
+  
+    return date;
+  }
+
+  isValidDate(value: string): boolean {
+    return this.parseDate(value) !== null;
   }
 
   isValidInteger(value: string): boolean {
@@ -684,7 +729,7 @@ export class Matchy extends HTMLElement {
   isValidFloat(value: string): boolean {
     return !isNaN(parseFloat(value));
   }
-
+  
   checkType(value: string, type: FieldType) {
     if (type === FieldType.integer) {
       return [this.isValidInteger(value), "It's not a valid integer"];
@@ -692,6 +737,8 @@ export class Matchy extends HTMLElement {
       return [this.isValidFloat(value), "It's not a valid float"];
     } else if (type === FieldType.bool) {
       return [value in ["Yes", "No"], "Possible values are 'Yes' or 'No'"];
+    }else if (type === FieldType.date) {
+      return [this.isValidDate(value), "Date must be valid and in format YYYY-MM-DD"]; // Anas Khouaja (AK) updated date format message
     }
 
     return [true, ""];
