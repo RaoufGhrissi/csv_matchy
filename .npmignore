@@ -1,0 +1,13 @@
+src/
+tsconfig.json
+*.ts
+!*.d.ts
+node_modules/
+*.log
+.DS_Store
+*.png
+index.html
+contributions.md
+.git/
+.gitignore
+

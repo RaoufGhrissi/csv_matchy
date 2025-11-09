@@ -1,16 +1,21 @@
 import { Comparer } from "../enums/comparer";
-import { ConditonProperty } from "../enums/conditon_property";
+import { ConditionProperty } from "../enums/condition_property";
 
 export class Condition {
-    property: ConditonProperty;
-    comparer: Comparer;
-    value: number | string | string[];
-    custom_fail_message: string | null;
+  property: ConditionProperty;
+  comparer: Comparer;
+  value: number | string | string[];
+  custom_fail_message: string | null;
 
-    constructor(property: ConditonProperty, value: number | string | string[], comparer: Comparer = Comparer.e, custom_fail_message: string | null = null) {
-        this.property = property;
-        this.comparer = comparer;
-        this.value = value;
-        this.custom_fail_message = custom_fail_message;
-    }
+  constructor(
+    property: ConditionProperty,
+    value: number | string | string[],
+    comparer: Comparer = Comparer.e,
+    custom_fail_message: string | null = null
+  ) {
+    this.property = property;
+    this.comparer = comparer;
+    this.value = value;
+    this.custom_fail_message = custom_fail_message;
+  }
 }

@@ -44,105 +44,126 @@ This library provides functionality to upload CSV files, match the file header w
 - **lte**: Less than or equal to comparison.
 - **e**: Equality comparison.
 - **in**: Membership comparison, checking if the value exists in a specified list or range.
-value: This field represents the value against which the condition is evaluated. It can be a number, a string, or an array of strings. The type of value depends on the context of the condition and the property being evaluated.
+  value: This field represents the value against which the condition is evaluated. It can be a number, a string, or an array of strings. The type of value depends on the context of the condition and the property being evaluated.
 
 `custom_fail_message`: This field contains a custom failure message that can be displayed if the condition is not met. It is optional and can be either a string or null. If provided, this message overrides any default failure message associated with the condition.
 
 These fields collectively define the criteria for validating data against specific conditions. They allow for flexible and customizable validation rules to ensure that data meets the required criteria within the application.
 
+## Installation
+
+Install the library via npm:
+
+```bash
+npm install csv_matchy
+```
+
 ## Using Matchy with Angular
-First you need to copy the `src` folder from this repository to your angular app.
 
-In this example, this is my project structure
-![alt text](image-4.png)
+1- Create a new component (⚠️ ⚠️ ⚠️ ⚠️ don't name it matchy, details: "app-matchy" is already defined here https://github.com/RaoufGhrissi/csv_matchy/blob/9151790e44e84f0d83c93f691aa2bb2ae3923e72/src/main.ts#L613)
 
-1- create a new component (⚠️ ⚠️ ⚠️ ⚠️ don't name it matchy, details: "app-matchy" is already defined here https://github.com/RaoufGhrissi/csv_matchy/blob/9151790e44e84f0d83c93f691aa2bb2ae3923e72/src/main.ts#L613)
+2- Your HTML file
 
-2- your html file
 ```html
 <div id="matchy"></div>
 ```
-3- in your TS file
+
+3- In your TS file
 
 ```ts
-import { Component, OnInit } from '@angular/core';
-import { Matchy } from 'src/libs/matchy/src/main';
-import { Condition } from 'src/libs/matchy/src/models/classes/condition';
-import { Option } from 'src/libs/matchy/src/models/classes/option';
-import { Comparer } from 'src/libs/matchy/src/models/enums/comparer';
-import { ConditonProperty } from 'src/libs/matchy/src/models/enums/conditon_property';
-import { FieldType } from 'src/libs/matchy/src/models/enums/field_type';
+import { Component, OnInit } from "@angular/core";
+import {
+  Matchy,
+  Condition,
+  Option,
+  Comparer,
+  ConditionProperty,
+  FieldType,
+} from "csv_matchy";
 
 export interface MatchyWrongCell {
-    message: string
-    rowIndex: string
-    colIndex: string
+  message: string;
+  rowIndex: string;
+  colIndex: string;
 }
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.css"],
 })
 export class MyComponent implements OnInit {
   warning?: string;
   errors?: string;
   wrongCells: MatchyWrongCell[] = [];
-  title = 'matchy_test';
+  title = "matchy_test";
 
   ngOnInit() {
     const options = [
       new Option("First Name", "first_name", true, FieldType.string, [
-        new Condition(ConditonProperty.length, 20, Comparer.gte),
-        new Condition(ConditonProperty.length, 30, Comparer.lt, "not safe choice"),
+        new Condition(ConditionProperty.length, 20, Comparer.gte),
+        new Condition(
+          ConditionProperty.length,
+          30,
+          Comparer.lt,
+          "not safe choice"
+        ),
       ]),
       new Option("Last Name", "last_name", true, FieldType.string, [
-        new Condition(ConditonProperty.value, ["AA", "BB"], Comparer.in)
+        new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in),
       ]),
       new Option("Age", "age", true, FieldType.integer, [
-        new Condition(ConditonProperty.value, 0, Comparer.gte),
-        new Condition(ConditonProperty.value, 40, Comparer.lte),
+        new Condition(ConditionProperty.value, 0, Comparer.gte),
+        new Condition(ConditionProperty.value, 40, Comparer.lte),
       ]),
-      new Option("Registration Number", "registration_num", true, FieldType.string, [
-        new Condition(ConditonProperty.regex, '^\\d{8}-\\d{2}$'),
-      ]),
+      new Option(
+        "Registration Number",
+        "registration_num",
+        true,
+        FieldType.string,
+        [new Condition(ConditionProperty.regex, "^\\d{8}-\\d{2}$")]
+      ),
       new Option("%", "percentage", true, FieldType.float, [
-        new Condition(ConditonProperty.value, 0, Comparer.gte),
-        new Condition(ConditonProperty.value, 100, Comparer.lte),
+        new Condition(ConditionProperty.value, 0, Comparer.gte),
+        new Condition(ConditionProperty.value, 100, Comparer.lte),
       ]),
     ];
 
     const matchy = new Matchy(options);
     document.getElementById("matchy")?.appendChild(matchy);
 
-    // Submit method should be overriden to implemnt your logic 
-    matchy.submit = async(data:any) => {
+    // Submit method should be overriden to implemnt your logic
+    matchy.submit = async (data: any) => {
       // use data and send it to your api
 
-      const success = false; // Hardcoded , get it from your api response 
-  
+      const success = false; // Hardcoded , get it from your api response
+
       if (success) {
         // do what you want
       } else {
         this.warning = data.warnings;
         this.errors = data.errors;
         this.wrongCells = data.wrong_cells ? data.wrong_cells : [];
-        // if you want to invalidate cells based on wrong cells received from your api response, 
-        // each td element in the table has col and row attributes, use matchyQuerySelectorAll() to get 
+        // if you want to invalidate cells based on wrong cells received from your api response,
+        // each td element in the table has col and row attributes, use matchyQuerySelectorAll() to get
         // the wrong cells and invalidate each one using markInvalidCell()
         const patterns = [];
         const message_per_cell = new Map<string, string>();
         for (const cell of this.wrongCells) {
           const rowIndex = cell.rowIndex;
           const colIndex = cell.colIndex;
-          
+
           patterns.push(`td[col="${colIndex}"][row="${rowIndex}"]`);
           message_per_cell.set(`${colIndex}, ${rowIndex}`, cell.message);
         }
-        matchy.matchyQuerySelectorAll(patterns.join(', ')).forEach((htmlCell) => {
-          const rowIndex = htmlCell.getAttribute("row");
-          const colIndex = htmlCell.getAttribute("col");
-          matchy.markInvalidCell(htmlCell, [message_per_cell.get(`${colIndex}, ${rowIndex}`)]);
-        })
+        matchy
+          .matchyQuerySelectorAll(patterns.join(", "))
+          .forEach((htmlCell) => {
+            const rowIndex = htmlCell.getAttribute("row");
+            const colIndex = htmlCell.getAttribute("col");
+            matchy.markInvalidCell(htmlCell, [
+              message_per_cell.get(`${colIndex}, ${rowIndex}`),
+            ]);
+          });
       }
     };
   }
@@ -151,41 +172,39 @@ export class MyComponent implements OnInit {
 
 ## Using Matchy with React
 
-
-1- First you need to copy the `src` folder from this repository to your react app.
- create a TS file and import some classes and enums from matchy to be able to create the options.
-
-2- Create the component which will use matchy
+1- Create the component which will use matchy
 
 ```ts
-import { Matchy } from "src/libs/matchy/src/main";
 import { useEffect, useRef } from "react";
-import { Condition } from 'src/libs/matchy/src/models/classes/condition';
-import { Option } from 'src/libs/matchy/src/models/classes/option';
-import { Comparer } from 'src/libs/matchy/src/models/enums/comparer';
-import { ConditonProperty } from 'src/libs/matchy/src/models/enums/conditon_property';
-import { FieldType } from 'src/libs/matchy/src/models/enums/field_type';
+import {
+  Matchy,
+  Condition,
+  Option,
+  Comparer,
+  ConditionProperty,
+  FieldType,
+} from "csv_matchy";
 
 const ComponentWithMatchy = () => {
   const matchyRef = useRef(null);
   const options = [
       new Option("First Name", "first_name", true, FieldType.string, [
-        new Condition(ConditonProperty.length, 20, Comparer.gte),
-        new Condition(ConditonProperty.length, 30, Comparer.lt, "not safe choice"),
+        new Condition(ConditionProperty.length, 20, Comparer.gte),
+        new Condition(ConditionProperty.length, 30, Comparer.lt, "not safe choice"),
       ]),
       new Option("Last Name", "last_name", true, FieldType.string, [
-        new Condition(ConditonProperty.value, ["AA", "BB"], Comparer.in)
+        new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in)
       ]),
       new Option("Age", "age", true, FieldType.integer, [
-        new Condition(ConditonProperty.value, 0, Comparer.gte),
-        new Condition(ConditonProperty.value, 40, Comparer.lte),
+        new Condition(ConditionProperty.value, 0, Comparer.gte),
+        new Condition(ConditionProperty.value, 40, Comparer.lte),
       ]),
       new Option("Registration Number", "registration_num", true, FieldType.string, [
-        new Condition(ConditonProperty.regex, '^\\d{8}-\\d{2}$'),
+        new Condition(ConditionProperty.regex, '^\\d{8}-\\d{2}$'),
       ]),
       new Option("%", "percentage", true, FieldType.float, [
-        new Condition(ConditonProperty.value, 0, Comparer.gte),
-        new Condition(ConditonProperty.value, 100, Comparer.lte),
+        new Condition(ConditionProperty.value, 0, Comparer.gte),
+        new Condition(ConditionProperty.value, 100, Comparer.lte),
       ]),
   ];
   useEffect(() => {
@@ -193,9 +212,10 @@ const ComponentWithMatchy = () => {
     if (matchy_div) {
       if (!matchy_div.querySelector("app-matchy")) {
         // To prevent inserting 2 times in case you have React.StrictMode
-        matchy_div.appendChild(new Matchy(options));
-        
-        // Submit method should be overriden to implemnt your logic 
+        const matchy = new Matchy(options);
+        matchy_div.appendChild(matchy);
+
+        // Submit method should be overriden to implemnt your logic
         matchy.submit = async(data:any) => {
           // use data and send it to your api
         };
@@ -213,8 +233,10 @@ export default ComponentWithMatchy;
 ```
 
 ## Contributing
+
 Contributions are welcome! Please feel free to submit a pull request.
 Check contributions.md for more details
 
 ## Support
+
 For any questions or issues, please open an issue.
