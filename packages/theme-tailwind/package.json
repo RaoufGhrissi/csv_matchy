@@ -1,0 +1,38 @@
+{
+  "name": "@csv-matchy/theme-tailwind",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Tailwind styled table for csv-matchy",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node -e \"process.exit(0)\""
+  },
+  "keywords": [
+    "csv",
+    "validator",
+    "tailwind"
+  ],
+  "author": "csv-matchy",
+  "license": "ISC",
+  "repository": "github:RaoufGhrissi/csv_matchy",
+  "homepage": "https://github.com/RaoufGhrissi/csv_matchy#readme",
+  "bugs": { "url": "https://github.com/RaoufGhrissi/csv_matchy/issues" },
+  "publishConfig": { "access": "public" },
+  "peerDependencies": {
+    "@csv-matchy/core": "^1.0.0",
+    "@csv-matchy/vanilla": "^1.0.0",
+    "tailwindcss": "^3.0.0"
+  },
+  "devDependencies": {
+    "@csv-matchy/core": "workspace:*",
+    "@csv-matchy/vanilla": "workspace:*",
+    "tailwindcss": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,1 @@
+export { TailwindTableRenderer } from './TailwindTableRenderer';

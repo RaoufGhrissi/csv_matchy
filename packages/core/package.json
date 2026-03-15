@@ -1,0 +1,38 @@
+{
+  "name": "@csv-matchy/core",
+  "version": "1.0.0",
+  "description": "Core validation logic for csv-matchy",
+  "main": "dist/cjs/index.js",
+  "types": "dist/esm/index.d.ts",
+  "module": "dist/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/esm/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "test": "jest"
+  },
+  "keywords": [
+    "csv",
+    "validator"
+  ],
+  "author": "csv-matchy",
+  "license": "ISC",
+  "repository": "github:RaoufGhrissi/csv_matchy",
+  "homepage": "https://github.com/RaoufGhrissi/csv_matchy#readme",
+  "bugs": { "url": "https://github.com/RaoufGhrissi/csv_matchy/issues" },
+  "publishConfig": { "access": "public" },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+export { default as Matchy } from "./main";
+export { default } from "./main";
+export { Condition } from "./models/classes/condition";
+export { Option } from "./models/classes/option";
+export { Cell } from "./models/classes/cell";
+export { Context } from "./models/classes/context";
+export { UploadEntry } from "./models/classes/uploadEntry";
+export { Comparer } from "./models/enums/comparer";
+export { ConditionProperty } from "./models/enums/condition_property";
+export { FieldType } from "./models/enums/field_type";

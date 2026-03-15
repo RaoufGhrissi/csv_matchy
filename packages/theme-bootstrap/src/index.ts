@@ -1,0 +1,1 @@
+export { BootstrapTableRenderer } from './BootstrapTableRenderer';

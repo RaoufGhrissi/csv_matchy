@@ -1,6 +1,6 @@
 import { Condition } from "./models/classes/condition";
 import { Comparer } from "./models/enums/comparer";
-import { ConditonProperty } from "./models/enums/conditon_property";
+import { ConditionProperty } from "./models/enums/condition_property";
 import { FieldType } from "./models/enums/field_type";
 import { Option } from "./models/classes/option";
 import {
@@ -118,7 +118,7 @@ export class Matchy extends HTMLElement {
             margin: 0;
             outline: none;
             border-top-style: hidden;
-            border-right-style: hidden;g
+            border-right-style: hidden;
             border-left-style: hidden;
             border-bottom-style: hidden;
             background-color: #ffcc00;
@@ -376,7 +376,7 @@ export class Matchy extends HTMLElement {
   }
 
   startEditMode(cell: any, rowIndex: number, colIndex: number) {
-    if (cell.classList.contains(editableCellClassName)) retutabrn;
+    if (cell.classList.contains(editableCellClassName)) return;
     this.currentSelectedcell = new SelectedCell(cell, rowIndex, colIndex);
     this.markValidCell(cell);
     const prevContent = cell.innerText;
@@ -539,14 +539,16 @@ export class Matchy extends HTMLElement {
   }
 
   generateValues() {
-    this.shadow.querySelectorAll("th div:not([data-selected='null'])").forEach((div) => {
+    this.shadow
+      .querySelectorAll("th div:not([data-selected='null'])")
+      .forEach((div) => {
         const selectId = div.id;
-        const selectedValue = div.getAttribute("data-selected")
+        const selectedValue = div.getAttribute("data-selected");
         if (selectedValue != null) {
-            this.values.set(selectId.toString(), selectedValue)
+          this.values.set(selectId.toString(), selectedValue);
         }
-    });
-}
+      });
+  }
 
   preSubmitFile() {
     this.generateValues();
@@ -629,13 +631,13 @@ export class Matchy extends HTMLElement {
   getInvalidCheckMessage(condition: Condition) {
     if (!isEmpty(condition.custom_fail_message)) {
       return condition.custom_fail_message;
-    } else if (condition.property === ConditonProperty.regex) {
+    } else if (condition.property === ConditionProperty.regex) {
       return `Text doesn't match the regex pattern ${condition.value}`;
-    } else if (condition.property === ConditonProperty.length) {
+    } else if (condition.property === ConditionProperty.length) {
       return `Text length is not ${textPerComparer[condition.comparer]} ${
         condition.value
       }`;
-    } else if (condition.property === ConditonProperty.value) {
+    } else if (condition.property === ConditionProperty.value) {
       return `Value is not ${textPerComparer[condition.comparer]} ${
         condition.value
       }`;
@@ -644,7 +646,7 @@ export class Matchy extends HTMLElement {
   }
 
   checkConstraint(value: string, condition: Condition) {
-    if (condition.property === ConditonProperty.length) {
+    if (condition.property === ConditionProperty.length) {
       if (condition.comparer === Comparer.in) {
         return evaluateConditions[condition.comparer](
           String(value.length),
@@ -656,7 +658,7 @@ export class Matchy extends HTMLElement {
         value.length,
         Number(condition.value)
       );
-    } else if (condition.property === ConditonProperty.value) {
+    } else if (condition.property === ConditionProperty.value) {
       if (condition.comparer === Comparer.in) {
         return evaluateConditions[Comparer.in](
           value,
@@ -667,7 +669,7 @@ export class Matchy extends HTMLElement {
         Number(value),
         Number(condition.value)
       );
-    } else if (condition.property === ConditonProperty.regex) {
+    } else if (condition.property === ConditionProperty.regex) {
       return this.checkRegExpConditions(value, String(condition.value));
     }
   }
@@ -745,3 +747,5 @@ export class Matchy extends HTMLElement {
 }
 
 customElements.define("app-matchy", Matchy);
+
+export default Matchy;

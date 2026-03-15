@@ -1,34 +1,23 @@
 {
-  "name": "csv_matchy",
-  "version": "1.0.1",
-  "description": "This library provides functionality to upload CSV files, match the file header with existing options, and validate the contents of the CSV files based on predefined conditions. The validation includes checking for mandatory fields, maximum or minimum length, and data type (string, integer, boolean, float, or regex pattern).",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/RaoufGhrissi/matchy.git"
-  },
-  "keywords": [
-    "csv",
-    "validator"
+  "name": "csv-matchy-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "src/libs/matchy"
   ],
-  "author": "Mahdi Cheikhrouhou & Abderraouf Ghrissi",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/RaoufGhrissi/matchy/issues"
-  },
-  "homepage": "https://github.com/RaoufGhrissi/matchy#readme",
-  "dependencies": {
-    "@types/string-similarity": "^4.0.2",
-    "date-fns": "^4.1.0",
-    "read-excel-file": "^5.8.6",
-    "string-similarity": "^4.0.4",
-    "xlsx": "^0.18.5"
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @csv-matchy/core build",
+    "build:vanilla": "pnpm --filter @csv-matchy/vanilla build",
+    "build:react": "pnpm --filter @csv-matchy/react build",
+    "build:angular": "pnpm --filter @csv-matchy/angular build",
+    "publish": "pnpm -r publish",
+    "test": "pnpm -r test",
+    "test:core": "pnpm --filter @csv-matchy/core test",
+    "test:vanilla": "pnpm --filter @csv-matchy/vanilla test",
+    "test:all": "pnpm --filter @csv-matchy/core test && pnpm --filter @csv-matchy/vanilla test"
   },
   "devDependencies": {
-    "@types/date-fns": "^2.6.3",
-    "@types/xlsx": "^0.0.36"
+    "typescript": "^5.0.0"
   }
 }

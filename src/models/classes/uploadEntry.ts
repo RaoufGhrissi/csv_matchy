@@ -1,7 +1,5 @@
-import { Cell } from "./cell.js";
-
 export class UploadEntry {
-    lines: Object[] = [];
+  lines: Object[] = [];
 
-    constructor() {}
+  constructor() {}
 }
