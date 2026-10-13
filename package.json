@@ -31,12 +31,9 @@
     "@types/string-similarity": "^4.0.2",
     "date-fns": "^4.1.0",
     "read-excel-file": "^5.8.8",
-    "string-similarity": "^4.0.4",
-    "xlsx": "^0.18.5"
+    "string-similarity": "^4.0.4"
   },
   "devDependencies": {
-    "@types/date-fns": "^2.6.3",
-    "@types/xlsx": "^0.0.36",
     "typescript": "^5.0.0"
   }
 }

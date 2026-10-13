@@ -58,6 +58,8 @@ Install the library via npm:
 npm install csv_matchy
 ```
 
+The package is published as ES modules that import their dependencies by bare name (`read-excel-file`, `string-similarity`, `date-fns`), so it must be consumed through a bundler (Angular CLI, Vite, webpack, ...). Opening `index.html` directly after `npm run build` will not resolve those imports; serve it with a dev server such as `npx vite` instead.
+
 ## Using Matchy with Angular
 
 1- Create a new component (⚠️ ⚠️ ⚠️ ⚠️ don't name it matchy, details: "app-matchy" is already defined here https://github.com/RaoufGhrissi/csv_matchy/blob/9151790e44e84f0d83c93f691aa2bb2ae3923e72/src/main.ts#L613)
