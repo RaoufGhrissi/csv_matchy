@@ -238,12 +238,12 @@ export class Matchy extends HTMLElement {
       return;
     }
     const currentCell = this.currentSelectedcell.cell;
-    let nextCell = null;
-    if (currentCell.nextElementSibling) {
-      nextCell = currentCell.nextElementSibling;
-    } else if (currentCell.parentElement?.nextElementSibling) {
-      nextCell = currentCell.parentElement?.nextElementSibling.children[0];
-    }
+    // Only data cells carry a col attribute; skip the trailing delete-icon cell.
+    const nextCell = currentCell.nextElementSibling?.hasAttribute(field.col)
+      ? currentCell.nextElementSibling
+      : currentCell.parentElement?.nextElementSibling?.querySelector(
+          `td[${field.col}]`
+        );
     this.endEditMode(
       currentCell,
       this.currentSelectedcell.rowIndex,
@@ -269,7 +269,7 @@ export class Matchy extends HTMLElement {
   onSelectOption(select: any, th: any) {
     if (!isEmpty(select.previousValue)) {
       this.shadow
-        .querySelectorAll(`option[value="${select.previousValue}"]`)
+        .querySelectorAll(`option[value="${CSS.escape(select.previousValue)}"]`)
         .forEach((option: any) => {
           option.disabled = false;
         });
@@ -278,7 +278,7 @@ export class Matchy extends HTMLElement {
     if (!isEmpty(select.value)) {
       this.values.set(select.id, select.value);
       this.shadow
-        .querySelectorAll(`option[value="${select.value}"]`)
+        .querySelectorAll(`option[value="${CSS.escape(select.value)}"]`)
         .forEach((option: any) => {
           option.disabled = true;
         });
@@ -318,7 +318,7 @@ export class Matchy extends HTMLElement {
     for (const [index, col] of this.fileHeader.entries()) {
       const th = createElement(tag.th);
       const text = createElement(tag.p);
-      text.innerHTML = col;
+      text.textContent = col;
       th.appendChild(text);
       row.appendChild(th);
       this.addOptions(th, index);
@@ -363,6 +363,8 @@ export class Matchy extends HTMLElement {
 
   endEditMode(cell: any, rowIndex: number, colIndex: number) {
     const input = cell.querySelector(tag.input);
+    // Already ended: removing the input below fires blur, which calls us again.
+    if (input == null) return;
     const content = input.value;
     this.rows[rowIndex][colIndex] = content;
     cell.innerHTML = "";
@@ -388,6 +390,12 @@ export class Matchy extends HTMLElement {
         blur: () => {
           this.endEditMode(cell, rowIndex, colIndex);
         },
+        // Bound to the input, which is discarded on exit, so listeners don't pile up.
+        keydown: (e: KeyboardEvent) => {
+          if (e.key === "Enter") {
+            this.endEditMode(cell, rowIndex, colIndex);
+          }
+        },
       }
     );
     if (cell.classList.contains(editedCellClassName)) {
@@ -398,11 +406,6 @@ export class Matchy extends HTMLElement {
     cell.innerHTML = "";
     cell.insertBefore(input, cell.firstChild);
     input.focus();
-    cell.addEventListener("keypress", (e: any) => {
-      if (e.key === "Enter") {
-        this.endEditMode(cell, rowIndex, colIndex);
-      }
-    });
   }
 
   matchyQuerySelectorAll(pattern: string) {
@@ -460,13 +463,10 @@ export class Matchy extends HTMLElement {
       alert("Please select a file.");
       return false;
     }
-    if (
-      ![
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(file.type)
-    ) {
-      alert("Please select an Excel file.");
+    // read-excel-file only parses .xlsx; MIME types are unreliable across OSes,
+    // so check the extension too.
+    if (!file.name.toLowerCase().endsWith(".xlsx")) {
+      alert("Please select an Excel file (.xlsx).");
       return false;
     }
 
@@ -507,6 +507,9 @@ export class Matchy extends HTMLElement {
       this.displayElementById(
         this.settings.validate ? ids.preSubmitFile : ids.submitFile
       );
+    }).catch((error: unknown) => {
+      console.error(error);
+      alert("Could not read this file. Please check it is a valid .xlsx file.");
     });
   }
 
@@ -671,7 +674,8 @@ export class Matchy extends HTMLElement {
   }
 
   isValidFloat(value: string): boolean {
-    return !isNaN(parseFloat(value));
+    // parseFloat accepts trailing garbage ("12abc"); Number does not.
+    return value.trim() !== "" && Number.isFinite(Number(value));
   }
 
   checkType(value: string, type: FieldType) {
@@ -680,15 +684,16 @@ export class Matchy extends HTMLElement {
     } else if (type === FieldType.float) {
       return [this.isValidFloat(value), "It's not a valid float"];
     } else if (type === FieldType.bool) {
-      return [value in ["Yes", "No"], "Possible values are 'Yes' or 'No'"];
+      return [["Yes", "No"].includes(value), "Possible values are 'Yes' or 'No'"];
     }
 
     return [true, ""];
   }
 
   autoMatch() {
+    // Nodes are column indexes, not header names, so duplicate headers don't collide.
     const edgesList: [string, string, number][] = [];
-    for (const field of this.fileHeader) {
+    for (const [index, field] of this.fileHeader.entries()) {
       if (field == null) continue;
       for (const option of this.options) {
         const similarity = stringSimilarity.compareTwoStrings(
@@ -696,7 +701,7 @@ export class Matchy extends HTMLElement {
           option.display_value.toLowerCase()
         );
         if (similarity > 0.1) {
-          edgesList.push([field, option.value as string, similarity]);
+          edgesList.push([String(index), option.value as string, similarity]);
         }
       }
     }
@@ -719,8 +724,7 @@ export class Matchy extends HTMLElement {
 
   onMatchingFormValueChanged(matching: { [key: string]: string }) {
     for (let index = 0; index < this.fileHeader.length; index++) {
-      const field = this.fileHeader[index];
-      const match = matching[field];
+      const match = matching[String(index)];
       if (match) {
         const select = this.shadow.querySelector(
           `select[id="${index}"]`

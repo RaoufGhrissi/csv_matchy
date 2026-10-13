@@ -149,11 +149,11 @@ export function createLabel(text: string, attributes: Object = {}, classes: stri
 }
 
 export const evaluateConditions = {
-  [Comparer.gt]: (x: number, y: number) => eval(`${x}>${y}`),
-  [Comparer.lt]: (x: number, y: number) => eval(`${x}<${y}`),
-  [Comparer.e]: (x: number, y: number) => eval(`${x}===${y}`),
-  [Comparer.gte]: (x: number, y: number) => eval(`${x}>=${y}`),
-  [Comparer.lte]: (x: number, y: number) => eval(`${x}<=${y}`),
+  [Comparer.gt]: (x: number, y: number) => x > y,
+  [Comparer.lt]: (x: number, y: number) => x < y,
+  [Comparer.e]: (x: number, y: number) => x === y,
+  [Comparer.gte]: (x: number, y: number) => x >= y,
+  [Comparer.lte]: (x: number, y: number) => x <= y,
   [Comparer.in]: (x: string, y: string[]) => y.map(e => e.toUpperCase()).includes(x.toUpperCase()),
   regExp: (x: string, y: string) => {
     const regex = new RegExp(y);

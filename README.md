@@ -1,10 +1,10 @@
 # Matchy Library
 
-This library provides functionality to upload CSV files, match the file header with existing options, and validate the contents of the CSV files based on predefined conditions. The validation includes checking for mandatory fields, maximum or minimum length, and data type (string, integer, boolean, float, or regex pattern).
+This library provides functionality to upload Excel (.xlsx) files, match the file header with existing options, and validate the contents of those files based on predefined conditions. The validation includes checking for mandatory fields, maximum or minimum length, and data type (string, integer, boolean, float, or regex pattern).
 
 ## Features
 
-1- Upload CSV files
+1- Upload Excel (.xlsx) files (CSV support is planned)
 
 2- Match file header with existing options
 
