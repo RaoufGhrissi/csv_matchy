@@ -71,3 +71,4 @@ git tag v$(node -p "require('./package.json').version")
 git push origin --tags
 ```
 The workflow fails if the tag does not match the version in package.json.
+3. The workflow only stages the release. Approve it on npmjs.com (package page → staged versions) or with `npm stage list` / `npm stage approve <id>`, using 2FA. It is not live on npm until approved.

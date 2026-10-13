@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24 # trusted publishing needs npm >= 11.5.1
+          node-version: 24 # npm 12 needs Node >= 24.15
           registry-url: https://registry.npmjs.org
-      - run: npm install -g npm@^11.5.1
+      - run: npm install -g npm@^12.2.0 # has `npm stage`
       - name: Check tag matches package.json version
         run: |
           version="v$(node -p "require('./package.json').version")"
@@ -26,4 +26,6 @@ jobs:
             exit 1
           fi
       - run: npm ci
-      - run: npm publish # prepublishOnly runs the build
+      # The trusted publisher only allows staging: approve the release on
+      # npmjs.com (or `npm stage approve <id>`) with 2FA to make it live.
+      - run: npm stage publish # prepublishOnly runs the build
