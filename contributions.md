@@ -18,7 +18,7 @@ If you're new to contributing to open-source projects or to Git and GitHub, don'
 Fork the Repository: Click the "Fork" button on the top right corner of the repository's page to create your copy of the project.
 Clone the Repository: Clone the repository to your local machine using Git:
 
-git clone https://github.com/RaoufGhrissi/matchy
+git clone https://github.com/RaoufGhrissi/csv_matchy
 
 Create a Branch: Create a new branch for your work. Choose a descriptive name that summarizes the purpose of your changes:
 
@@ -29,9 +29,10 @@ Make Changes: Make your changes to the codebase. Ensure that your changes adhere
 
 Do your changes in src folder in ts files then run
 ```
-tsc
+npm install
+npm run build
 ```
-to generate an updated dist folder with your new changes.
+to generate an updated dist folder with your new changes. `dist/` is not committed; it is built when the package is published.
 
 Test Your Changes: Test your changes thoroughly to ensure that they work as expected and do not introduce any regressions.
 Commit Your Changes: Once you're satisfied with your changes, commit them to your branch:
@@ -55,3 +56,18 @@ Feedback
 If you have any feedback or suggestions on how we can improve the contribution process, please let us know. We're always looking for ways to make it easier for people to contribute to the project.
 
 Thank you for contributing to the CSV Validator project! 🎉
+
+Releasing (maintainers)
+Releases are published to npm by GitHub Actions (.github/workflows/publish.yml) when a vX.Y.Z tag is pushed. main only accepts pull requests, so the version bump goes through one:
+
+1. In a PR, add an entry to CHANGELOG.md and bump the version without tagging:
+```
+npm version <major|minor|patch> --no-git-tag-version
+```
+2. Once it is merged, tag the merge commit and push the tag:
+```
+git checkout main && git pull
+git tag v$(node -p "require('./package.json').version")
+git push origin --tags
+```
+The workflow fails if the tag does not match the version in package.json.
