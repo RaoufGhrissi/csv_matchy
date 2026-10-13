@@ -24,7 +24,7 @@ This library provides functionality to upload Excel (.xlsx) files, match the fil
 
 `mandatory`: This is a boolean field indicating whether the field is mandatory or required. If mandatory is set to true, it means that the field must have a value provided for it to be considered valid.
 
-`type`: The type field specifies the data type of the field. It is typically represented by an enumeration Field Type with possible values (float, integer, string)
+`type`: The type field specifies the data type of the field. It is represented by the FieldType enumeration with possible values (float, integer, string, bool).
 
 `conditions`: This field represents an array of conditions that need to be satisfied for the field to be considered valid.
 
@@ -44,7 +44,8 @@ This library provides functionality to upload Excel (.xlsx) files, match the fil
 - **lte**: Less than or equal to comparison.
 - **e**: Equality comparison.
 - **in**: Membership comparison, checking if the value exists in a specified list or range.
-  value: This field represents the value against which the condition is evaluated. It can be a number, a string, or an array of strings. The type of value depends on the context of the condition and the property being evaluated.
+
+`value`: This field represents the value against which the condition is evaluated. It can be a number, a string, or an array of strings. The type of value depends on the context of the condition and the property being evaluated.
 
 `custom_fail_message`: This field contains a custom failure message that can be displayed if the condition is not met. It is optional and can be either a string or null. If provided, this message overrides any default failure message associated with the condition.
 
@@ -58,11 +59,17 @@ Install the library via npm:
 npm install csv_matchy
 ```
 
-The package is published as ES modules that import their dependencies by bare name (`read-excel-file`, `string-similarity`, `date-fns`), so it must be consumed through a bundler (Angular CLI, Vite, webpack, ...). Opening `index.html` directly after `npm run build` will not resolve those imports; serve it with a dev server such as `npx vite` instead.
+Import the library directly from the installed package:
+
+```ts
+import { Matchy, Condition, Option, Comparer, ConditionProperty, FieldType } from "csv_matchy";
+```
+
+The package includes TypeScript declarations, so there is no need to copy source files into your project. Use it with a bundler such as Angular CLI, Vite, or webpack to resolve its dependencies.
 
 ## Using Matchy with Angular
 
-1- Create a new component (⚠️ ⚠️ ⚠️ ⚠️ don't name it matchy, details: "app-matchy" is already defined here https://github.com/RaoufGhrissi/csv_matchy/blob/9151790e44e84f0d83c93f691aa2bb2ae3923e72/src/main.ts#L613)
+1- Create a new component (don't use the selector "app-matchy", it is already defined by the library)
 
 2- Your HTML file
 
@@ -133,7 +140,7 @@ export class MyComponent implements OnInit {
     const matchy = new Matchy(options);
     document.getElementById("matchy")?.appendChild(matchy);
 
-    // Submit method should be overriden to implemnt your logic
+    // Submit method should be overridden to implement your logic
     matchy.submit = async (data: any) => {
       // use data and send it to your api
 
@@ -217,7 +224,7 @@ const ComponentWithMatchy = () => {
         const matchy = new Matchy(options);
         matchy_div.appendChild(matchy);
 
-        // Submit method should be overriden to implemnt your logic
+        // Submit method should be overridden to implement your logic
         matchy.submit = async(data:any) => {
           // use data and send it to your api
         };
@@ -226,7 +233,6 @@ const ComponentWithMatchy = () => {
   }, []);
   return (
       <div id="matchy" ref={matchyRef}></div>
-    </>
   );
 };
 
@@ -237,7 +243,7 @@ export default ComponentWithMatchy;
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a pull request.
-Check contributions.md for more details
+Check [contributions.md](contributions.md) for more details.
 
 ## Support
 
