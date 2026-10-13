@@ -538,20 +538,7 @@ export class Matchy extends HTMLElement {
     this.setDisplayProp(id, "inline");
   }
 
-  generateValues() {
-    this.shadow
-      .querySelectorAll("th div:not([data-selected='null'])")
-      .forEach((div) => {
-        const selectId = div.id;
-        const selectedValue = div.getAttribute("data-selected");
-        if (selectedValue != null) {
-          this.values.set(selectId.toString(), selectedValue);
-        }
-      });
-  }
-
   preSubmitFile() {
-    this.generateValues();
     this.context.preSubmitFileContext = true;
     this.deleteNotMatchedColumns();
     for (let colIndex = 0; colIndex < this.cols.length; colIndex++) {
