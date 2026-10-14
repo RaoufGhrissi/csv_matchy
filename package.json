@@ -1,7 +1,7 @@
 {
   "name": "csv_matchy",
   "version": "2.0.0",
-  "description": "This library provides functionality to upload CSV files, match the file header with existing options, and validate the contents of the CSV files based on predefined conditions. The validation includes checking for mandatory fields, maximum or minimum length, and data type (string, integer, boolean, float, or regex pattern).",
+  "description": "A TypeScript web component for importing Excel (.xlsx) spreadsheets, matching columns, and validating and editing cells before submission.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
@@ -21,7 +21,7 @@
     "csv",
     "validator"
   ],
-  "author": "Mahdi Cheikhrouhou & Abderraouf Ghrissi",
+  "author": "Abderraouf Ghrissi & Mahdi Cheikhrouhou",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/RaoufGhrissi/csv_matchy/issues"
