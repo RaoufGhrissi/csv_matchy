@@ -1,250 +1,166 @@
-# Matchy Library
+# Matchy
 
-This library provides functionality to upload Excel (.xlsx) files, match the file header with existing options, and validate the contents of those files based on predefined conditions. The validation includes checking for mandatory fields, maximum or minimum length, and data type (string, integer, boolean, float, or regex pattern).
+[![npm version](https://img.shields.io/npm/v/csv_matchy)](https://www.npmjs.com/package/csv_matchy)
+[Build status](https://github.com/RaoufGhrissi/csv_matchy/actions/workflows/build.yml) · [ISC license](LICENSE)
+
+A TypeScript web component for importing Excel spreadsheets, matching columns to your fields, and validating and editing cells before submission.
 
 ## Features
 
-1- Upload Excel (.xlsx) files (CSV support is planned)
+- Upload `.xlsx` files and automatically suggest column mappings.
+- Validate required values, types, lengths, ranges, and regular expressions.
+- Edit cells, remove rows, and highlight invalid values.
+- Submit mapped data to your own application or API.
 
-2- Match file header with existing options
-
-3- Validate cells based on conditions
-
-4- Directly update cells without altering the file
-
-5- Visual indication of validation status (red for invalid, green for valid)
-
-## Overview
-
-##### Option fields:
-
-`display_value`: This field represents the value displayed to users. For instance, if the field represents a person's first name, the display_value might be "First Name".
-
-`value`: The value field corresponds to the actual field name or identifier used in your database or backend systems. For example, if the field represents a person's first name and the database column is named "first_name", then value would be "first_name".
-
-`mandatory`: This is a boolean field indicating whether the field is mandatory or required. If mandatory is set to true, it means that the field must have a value provided for it to be considered valid.
-
-`type`: The type field specifies the data type of the field. It is represented by the FieldType enumeration with possible values (float, integer, string, bool).
-
-`conditions`: This field represents an array of conditions that need to be satisfied for the field to be considered valid.
-
-##### Condition fields:
-
-`property`: This field is an enum representing the property of the data being evaluated in the condition. It can take one of three values:
-
-- **value**: Indicates that the condition applies directly to the value itself.
-- **regex**: Specifies that the condition involves a regular expression pattern match.
-- **length**: Denotes that the condition pertains to the length of the value, such as string length or array length.
-
-`comparer`: This field is an enum representing the comparison operation to be applied in the condition. It can take one of six values:
-
-- **gt**: Greater than comparison.
-- **gte**: Greater than or equal to comparison.
-- **lt**: Less than comparison.
-- **lte**: Less than or equal to comparison.
-- **e**: Equality comparison.
-- **in**: Membership comparison, checking if the value exists in a specified list or range.
-
-`value`: This field represents the value against which the condition is evaluated. It can be a number, a string, or an array of strings. The type of value depends on the context of the condition and the property being evaluated.
-
-`custom_fail_message`: This field contains a custom failure message that can be displayed if the condition is not met. It is optional and can be either a string or null. If provided, this message overrides any default failure message associated with the condition.
-
-These fields collectively define the criteria for validating data against specific conditions. They allow for flexible and customizable validation rules to ensure that data meets the required criteria within the application.
+CSV and `.xls` uploads are not supported.
 
 ## Installation
 
-Install the library via npm:
-
-```bash
+```sh
 npm install csv_matchy
 ```
 
-Import the library directly from the installed package:
+Use a browser application with a bundler such as Angular CLI, Vite, or webpack. TypeScript declarations are included.
 
-```ts
-import { Matchy, Condition, Option, Comparer, ConditionProperty, FieldType } from "csv_matchy";
-```
+## Quick start
 
-The package includes TypeScript declarations, so there is no need to copy source files into your project. Use it with a bundler such as Angular CLI, Vite, or webpack to resolve its dependencies.
-
-## Using Matchy with Angular
-
-1- Create a new component (don't use the selector "app-matchy", it is already defined by the library)
-
-2- Your HTML file
+Add a container to your page:
 
 ```html
 <div id="matchy"></div>
 ```
 
-3- In your TS file
+Then create the component after the container is mounted:
 
 ```ts
-import { Component, OnInit } from "@angular/core";
 import {
-  Matchy,
-  Condition,
-  Option,
-  Comparer,
-  ConditionProperty,
-  FieldType,
+  Matchy, Option, Condition, FieldType, ConditionProperty, Comparer,
 } from "csv_matchy";
 
-export interface MatchyWrongCell {
-  message: string;
-  rowIndex: string;
-  colIndex: string;
-}
+const options = [
+  new Option("Name", "name", true, FieldType.string),
+  new Option("Age", "age", true, FieldType.integer, [
+    new Condition(ConditionProperty.value, 0, Comparer.gte),
+  ]),
+];
+
+const matchy = new Matchy(options);
+matchy.submit = async (data) => {
+  // Send data.lines to your API or handle it in your application.
+  console.log(data.lines);
+};
+document.getElementById("matchy")!.appendChild(matchy);
+```
+
+Upload a file, review the column mappings, choose **Pre Submit** to validate, then edit cells and choose **Submit**. Validation highlights errors; your application controls whether to accept the submitted data.
+
+Each submitted line maps field keys to cells containing `value`, `rowIndex`, and `colIndex`.
+
+## Usage
+
+Matchy registers the `app-matchy` element and uses Shadow DOM with Bootstrap styles loaded from a CDN. Keep that element name reserved when integrating it into your application.
+
+### Validation options
+
+```ts
+new Option(display_value, value, mandatory, type, conditions);
+new Condition(property, value, comparer, custom_fail_message);
+```
+
+| Option argument | Purpose | Default |
+| --- | --- | --- |
+| `display_value` | Label shown in column mappings | `""` |
+| `value` | Field key in submitted data | `null` |
+| `mandatory` | Require a value in mapped cells | `false` |
+| `type` | `FieldType.string`, `integer`, `float`, or `bool` | `FieldType.string` |
+| `conditions` | Additional validation rules | `[]` |
+
+Boolean fields accept `"Yes"` and `"No"`.
+
+Conditions use `ConditionProperty.value`, `length`, or `regex`. Comparers are `Comparer.gt`, `gte`, `lt`, `lte`, `e`, and `in`; the default is `e`. A condition value is a number, string, or array of strings. An optional custom message replaces the default failure message.
+
+```ts
+import { Condition, ConditionProperty, Comparer } from "csv_matchy";
+
+const maxLength = new Condition(ConditionProperty.length, 30, Comparer.lte);
+const allowedValues = new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in);
+const registrationNumber = new Condition(ConditionProperty.regex, "^\\d{8}-\\d{2}$");
+```
+
+### Angular
+
+Create Matchy after Angular has initialized the container. Use your own component selector; `app-matchy` is registered by the library.
+
+```ts
+import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
+import { Matchy, Option, FieldType } from "csv_matchy";
+
 @Component({
-  selector: "app-root",
-  templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.css"],
+  selector: "app-spreadsheet-import",
+  template: '<div #container></div>',
 })
-export class MyComponent implements OnInit {
-  warning?: string;
-  errors?: string;
-  wrongCells: MatchyWrongCell[] = [];
-  title = "matchy_test";
+export class SpreadsheetImportComponent implements AfterViewInit {
+  @ViewChild("container") container!: ElementRef<HTMLDivElement>;
 
-  ngOnInit() {
-    const options = [
-      new Option("First Name", "first_name", true, FieldType.string, [
-        new Condition(ConditionProperty.length, 20, Comparer.gte),
-        new Condition(
-          ConditionProperty.length,
-          30,
-          Comparer.lt,
-          "not safe choice"
-        ),
-      ]),
-      new Option("Last Name", "last_name", true, FieldType.string, [
-        new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in),
-      ]),
-      new Option("Age", "age", true, FieldType.integer, [
-        new Condition(ConditionProperty.value, 0, Comparer.gte),
-        new Condition(ConditionProperty.value, 40, Comparer.lte),
-      ]),
-      new Option(
-        "Registration Number",
-        "registration_num",
-        true,
-        FieldType.string,
-        [new Condition(ConditionProperty.regex, "^\\d{8}-\\d{2}$")]
-      ),
-      new Option("%", "percentage", true, FieldType.float, [
-        new Condition(ConditionProperty.value, 0, Comparer.gte),
-        new Condition(ConditionProperty.value, 100, Comparer.lte),
-      ]),
-    ];
-
-    const matchy = new Matchy(options);
-    document.getElementById("matchy")?.appendChild(matchy);
-
-    // Submit method should be overridden to implement your logic
-    matchy.submit = async (data: any) => {
-      // use data and send it to your api
-
-      const success = false; // Hardcoded , get it from your api response
-
-      if (success) {
-        // do what you want
-      } else {
-        this.warning = data.warnings;
-        this.errors = data.errors;
-        this.wrongCells = data.wrong_cells ? data.wrong_cells : [];
-        // if you want to invalidate cells based on wrong cells received from your api response,
-        // each td element in the table has col and row attributes, use matchyQuerySelectorAll() to get
-        // the wrong cells and invalidate each one using markInvalidCell()
-        const patterns = [];
-        const message_per_cell = new Map<string, string>();
-        for (const cell of this.wrongCells) {
-          const rowIndex = cell.rowIndex;
-          const colIndex = cell.colIndex;
-
-          patterns.push(`td[col="${colIndex}"][row="${rowIndex}"]`);
-          message_per_cell.set(`${colIndex}, ${rowIndex}`, cell.message);
-        }
-        matchy
-          .matchyQuerySelectorAll(patterns.join(", "))
-          .forEach((htmlCell) => {
-            const rowIndex = htmlCell.getAttribute("row");
-            const colIndex = htmlCell.getAttribute("col");
-            matchy.markInvalidCell(htmlCell, [
-              message_per_cell.get(`${colIndex}, ${rowIndex}`),
-            ]);
-          });
-      }
+  ngAfterViewInit() {
+    const matchy = new Matchy([
+      new Option("Name", "name", true, FieldType.string),
+    ]);
+    matchy.submit = async (data) => {
+      console.log(data.lines);
     };
+    this.container.nativeElement.appendChild(matchy);
   }
 }
 ```
 
-## Using Matchy with React
+### React
 
-1- Create the component which will use matchy
+Mount the component with a ref and remove it when the effect cleans up. This also handles React Strict Mode's effect setup and cleanup cycle.
+
+```tsx
+import { useEffect, useRef } from "react";
+import { Matchy, Option, FieldType } from "csv_matchy";
+
+export function SpreadsheetImport() {
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const matchy = new Matchy([
+      new Option("Name", "name", true, FieldType.string),
+    ]);
+    matchy.submit = async (data) => {
+      console.log(data.lines);
+    };
+    container.current!.appendChild(matchy);
+    return () => matchy.remove();
+  }, []);
+
+  return <div ref={container} />;
+}
+```
+
+### Errors from your API
+
+Each submitted cell includes its original zero-based `rowIndex` and `colIndex`. Use those coordinates to highlight errors returned by your API inside Matchy's Shadow DOM:
 
 ```ts
-import { useEffect, useRef } from "react";
-import {
-  Matchy,
-  Condition,
-  Option,
-  Comparer,
-  ConditionProperty,
-  FieldType,
-} from "csv_matchy";
-
-const ComponentWithMatchy = () => {
-  const matchyRef = useRef(null);
-  const options = [
-      new Option("First Name", "first_name", true, FieldType.string, [
-        new Condition(ConditionProperty.length, 20, Comparer.gte),
-        new Condition(ConditionProperty.length, 30, Comparer.lt, "not safe choice"),
-      ]),
-      new Option("Last Name", "last_name", true, FieldType.string, [
-        new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in)
-      ]),
-      new Option("Age", "age", true, FieldType.integer, [
-        new Condition(ConditionProperty.value, 0, Comparer.gte),
-        new Condition(ConditionProperty.value, 40, Comparer.lte),
-      ]),
-      new Option("Registration Number", "registration_num", true, FieldType.string, [
-        new Condition(ConditionProperty.regex, '^\\d{8}-\\d{2}$'),
-      ]),
-      new Option("%", "percentage", true, FieldType.float, [
-        new Condition(ConditionProperty.value, 0, Comparer.gte),
-        new Condition(ConditionProperty.value, 100, Comparer.lte),
-      ]),
-  ];
-  useEffect(() => {
-    const matchy_div = document.getElementById("matchy");
-    if (matchy_div) {
-      if (!matchy_div.querySelector("app-matchy")) {
-        // To prevent inserting 2 times in case you have React.StrictMode
-        const matchy = new Matchy(options);
-        matchy_div.appendChild(matchy);
-
-        // Submit method should be overridden to implement your logic
-        matchy.submit = async(data:any) => {
-          // use data and send it to your api
-        };
-      }
-    }
-  }, []);
-  return (
-      <div id="matchy" ref={matchyRef}></div>
-  );
-};
-
-export default ComponentWithMatchy;
-
+const rowIndex = 0;
+const colIndex = 1;
+const cell = matchy.matchyQuerySelector(
+  `td[row="${rowIndex}"][col="${colIndex}"]`,
+);
+if (cell) {
+  matchy.markInvalidCell(cell, ["This value already exists."]);
+}
 ```
+
+Use `matchy.markValidCell(cell)` to clear the error state. Keep API response fields separate from the submitted payload, which contains `lines`.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a pull request.
-Check [contributions.md](contributions.md) for more details.
+Bug reports and contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and check the [changelog](CHANGELOG.md).
 
-## Support
+## License
 
-For any questions or issues, please open an issue.
+[ISC](LICENSE) — Abderraouf Ghrissi and Mahdi Cheikhrouhou.
