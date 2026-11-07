@@ -31,8 +31,15 @@ import { fr } from "date-fns/locale";
 import readXlsxFile from "read-excel-file";
 import * as stringSimilarity from "string-similarity";
 
-interface Settings {
-  validate: boolean;
+export interface Settings {
+  validate?: boolean;
+  autoMatch?: boolean;
+}
+
+export interface WrongCell {
+  rowIndex: number;
+  colIndex: number;
+  issues: string[];
 }
 
 class SelectedCell {
@@ -51,7 +58,7 @@ export class Matchy extends HTMLElement {
   shadow: ShadowRoot;
   defaultOption: Option;
   options: Option[];
-  settings: Settings;
+  settings: Required<Settings>;
   rows: string[][];
   cols: Option[];
   fileHeader: string[];
@@ -59,10 +66,11 @@ export class Matchy extends HTMLElement {
   context: Context;
   deletedRows: Set<number>;
   currentSelectedcell: SelectedCell | null = null;
+  wrongCells: WrongCell[] = [];
 
   constructor(
     mainOptions: Option[] = [],
-    setting: Settings = { validate: true }
+    setting: Settings = {}
   ) {
     super();
     this.defaultOption = new Option();
@@ -74,13 +82,30 @@ export class Matchy extends HTMLElement {
     this.context = new Context();
     this.deletedRows = new Set<number>();
     this.setPossibleOptions(mainOptions);
-    this.settings = setting;
+    this.settings = { validate: true, autoMatch: true, ...setting };
 
     this.shadow = this.attachShadow({ mode: "open" });
     this.shadow.innerHTML = `<style>
-          table {
+          :host .container {
+            max-width: none;
+            padding: 0;
+          }
+
+          table.table {
             font-size: 12px;
-            table-layout: fixed;
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          table.table th,
+          table.table td {
+            white-space: nowrap;
+          }
+
+          table.table select {
+            min-width: 10rem;
           }
 
           table,
@@ -113,6 +138,7 @@ export class Matchy extends HTMLElement {
           }
 
           .editableCell input {
+            min-width: 8rem;
             padding: 0;
             width: 100%;
             margin: 0;
@@ -264,6 +290,7 @@ export class Matchy extends HTMLElement {
     this.values = new Map<string, string>();
     this.context = new Context();
     this.deletedRows = new Set<number>();
+    this.wrongCells = [];
   }
 
   onSelectOption(select: any, th: any) {
@@ -482,7 +509,9 @@ export class Matchy extends HTMLElement {
     table.innerHTML = "";
     this.generateTableBody(table);
     this.generateTableHead(table);
-    this.autoMatch();
+    if (this.settings.autoMatch) {
+      this.autoMatch();
+    }
   }
 
   handleFileUpload(event: any) {
@@ -569,7 +598,30 @@ export class Matchy extends HTMLElement {
     });
   }
 
-  async submit(data: any) {
+  markWrongCells(wrongCells: WrongCell[]) {
+    this.clearWrongCells();
+    for (const wrongCell of wrongCells) {
+      this.cellsAt(wrongCell).forEach((cell) =>
+        this.markInvalidCell(cell, wrongCell.issues)
+      );
+    }
+    this.wrongCells = wrongCells;
+  }
+
+  clearWrongCells() {
+    for (const wrongCell of this.wrongCells) {
+      this.cellsAt(wrongCell).forEach((cell) => this.markValidCell(cell));
+    }
+    this.wrongCells = [];
+  }
+
+  cellsAt({ rowIndex, colIndex }: WrongCell) {
+    return this.shadow.querySelectorAll(
+      `td[row="${rowIndex}"][col="${colIndex}"]`
+    );
+  }
+
+  async submit(data: UploadEntry) {
     console.log("this should be overriden");
   }
 

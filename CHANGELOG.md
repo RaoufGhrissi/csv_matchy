@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. This project follows [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+- `autoMatch` setting: `new Matchy(options, { autoMatch: false })` leaves every column unmatched so the user picks them. Settings are now optional and default to `{ validate: true, autoMatch: true }`.
+- `markWrongCells([{ rowIndex, colIndex, issues }])` marks cells rejected by your backend, clearing the cells it marked last time, and `clearWrongCells()` clears them. Positions are the `rowIndex`/`colIndex` of the cells sent to `submit`.
+- `Settings` and `WrongCell` types are exported.
+
+### Changed
+- The table fills its container and scrolls sideways on narrow screens, instead of squeezing columns and wrapping their content.
+- `generateResult()` and `submit()` are typed: `lines` is a list of `{ [field]: Cell }`.
+
 ## 2.0.0 - 2026-10-13
 
 ### Breaking changes
