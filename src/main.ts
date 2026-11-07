@@ -31,9 +31,39 @@ import { fr } from "date-fns/locale";
 import readXlsxFile from "read-excel-file";
 import * as stringSimilarity from "string-similarity";
 
+export interface Labels {
+  selectFile: string;
+  preSubmit: string;
+  submit: string;
+  reset: string;
+  confirmDelete: string;
+  noFile: string;
+  wrongFileType: string;
+  unreadableFile: string;
+}
+
+export const defaultLabels: Labels = {
+  selectFile: "Select an Excel File :",
+  preSubmit: "Pre Submit",
+  submit: "Submit",
+  reset: "Reset",
+  confirmDelete: "Are you sure you want to delete this item ?",
+  noFile: "Please select a file.",
+  wrongFileType: "Please select an Excel file (.xlsx).",
+  unreadableFile:
+    "Could not read this file. Please check it is a valid .xlsx file.",
+};
+
 export interface Settings {
   validate?: boolean;
   autoMatch?: boolean;
+  labels?: Partial<Labels>;
+}
+
+interface ResolvedSettings {
+  validate: boolean;
+  autoMatch: boolean;
+  labels: Labels;
 }
 
 export interface WrongCell {
@@ -58,7 +88,7 @@ export class Matchy extends HTMLElement {
   shadow: ShadowRoot;
   defaultOption: Option;
   options: Option[];
-  settings: Required<Settings>;
+  settings: ResolvedSettings;
   rows: string[][];
   cols: Option[];
   fileHeader: string[];
@@ -82,7 +112,11 @@ export class Matchy extends HTMLElement {
     this.context = new Context();
     this.deletedRows = new Set<number>();
     this.setPossibleOptions(mainOptions);
-    this.settings = { validate: true, autoMatch: true, ...setting };
+    this.settings = {
+      validate: setting.validate ?? true,
+      autoMatch: setting.autoMatch ?? true,
+      labels: { ...defaultLabels, ...setting.labels },
+    };
 
     this.shadow = this.attachShadow({ mode: "open" });
     this.shadow.innerHTML = `<style>
@@ -178,7 +212,8 @@ export class Matchy extends HTMLElement {
     const container = createElement(tag.div, {}, [bootstrap["container"]]);
     const form = createElement(tag.form);
     const formGroup = createElement(tag.div, {}, [bootstrap["formGroup"]]);
-    const selectFileLabel = createLabel("Select an Excel File :", {
+    const labels = this.settings.labels;
+    const selectFileLabel = createLabel(labels.selectFile, {
       for: ids.uploadedFile,
     });
     const fileInput = createElement(
@@ -196,7 +231,7 @@ export class Matchy extends HTMLElement {
     form.appendChild(formGroup);
     form.appendChild(
       createButton(
-        "Pre Submit",
+        labels.preSubmit,
         {
           id: ids.preSubmitFile,
           type: button.button,
@@ -207,7 +242,7 @@ export class Matchy extends HTMLElement {
     );
     form.appendChild(
       createButton(
-        "Submit",
+        labels.submit,
         {
           id: ids.submitFile,
           type: button.button,
@@ -218,7 +253,7 @@ export class Matchy extends HTMLElement {
     );
     form.appendChild(
       createButton(
-        "Reset",
+        labels.reset,
         {
           id: ids.resetFile,
           type: button.button,
@@ -333,7 +368,7 @@ export class Matchy extends HTMLElement {
       const option: any = createElement(tag.option, {
         value: element.value,
       });
-      option.innerText = element.display_value;
+      option.textContent = element.display_value;
       select.appendChild(option);
     }
     th.appendChild(select);
@@ -472,9 +507,7 @@ export class Matchy extends HTMLElement {
       const cell = tableRow.insertCell();
       const icon = createElement(tag.i, {}, [bootstrap["trashIcon"]], {
         click: () => {
-          const confirmDelete = confirm(
-            "Are you sure you want to delete this item ?"
-          );
+          const confirmDelete = confirm(this.settings.labels.confirmDelete);
 
           if (!!confirmDelete) {
             this.deleteRow(rowIndex);
@@ -487,13 +520,13 @@ export class Matchy extends HTMLElement {
 
   validateFile(file: any) {
     if (!file) {
-      alert("Please select a file.");
+      alert(this.settings.labels.noFile);
       return false;
     }
     // read-excel-file only parses .xlsx; MIME types are unreliable across OSes,
     // so check the extension too.
     if (!file.name.toLowerCase().endsWith(".xlsx")) {
-      alert("Please select an Excel file (.xlsx).");
+      alert(this.settings.labels.wrongFileType);
       return false;
     }
 
@@ -538,7 +571,7 @@ export class Matchy extends HTMLElement {
       );
     }).catch((error: unknown) => {
       console.error(error);
-      alert("Could not read this file. Please check it is a valid .xlsx file.");
+      alert(this.settings.labels.unreadableFile);
     });
   }
 
@@ -636,9 +669,9 @@ export class Matchy extends HTMLElement {
       if (this.deletedRows.has(rowIndex)) continue;
       const data: { [key: string]: Cell } = {};
       for (const [colIndex, header] of this.cols.entries()) {
-        if (header.value == null) continue;
+        if (isEmpty(header.value)) continue;
 
-        data[header.value] = new Cell(row[colIndex], rowIndex, colIndex);
+        data[header.value as string] = new Cell(row[colIndex], rowIndex, colIndex);
       }
       content.lines.push(data);
     }
