@@ -5,6 +5,8 @@
 
 A TypeScript web component for importing Excel spreadsheets, matching columns to your fields, and validating and editing cells before submission.
 
+**[Try the live demo](https://raoufghrissi.github.io/csv_matchy/)** · **[Tutorial](docs/tutorial.md)**: validation in the browser, or on your server with FastAPI or Express examples.
+
 ## Features
 
 - Upload `.xlsx` files and automatically suggest column mappings.
@@ -198,6 +200,10 @@ matchy.submit = async (data) => {
 ```
 
 Each call clears the cells marked by the previous one, so the table always shows the latest response. Marks are kept across pages, and editing a cell clears its mark. `matchy.clearWrongCells()` clears them all. Use `validate: false` when your API does all the validation.
+
+### Demo
+
+The [live demo](https://raoufghrissi.github.io/csv_matchy/) is built from [`demo/`](demo/) and deployed to GitHub Pages from `main`. Run it locally with `npm run demo`.
 
 ## Contributing
 
