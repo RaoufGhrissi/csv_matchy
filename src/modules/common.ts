@@ -25,6 +25,11 @@ export const ids = {
   uploadedFile: "uploadedFile",
   errorDisplay: "errorDisplay",
   exportFile: "exportFile",
+  pagination: "pagination",
+  paginationInfo: "paginationInfo",
+  paginationPage: "paginationPage",
+  previousPage: "previousPage",
+  nextPage: "nextPage",
 };
 
 export const bootstrap: { [key: string]: string }  = {

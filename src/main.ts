@@ -44,6 +44,10 @@ export interface Labels {
   noErrors: string;
   export: string;
   noMatchedColumns: string;
+  previous: string;
+  next: string;
+  pageInfo: string;
+  page: string;
 }
 
 export const defaultLabels: Labels = {
@@ -61,6 +65,10 @@ export const defaultLabels: Labels = {
   noErrors: "All cells are valid. Your data is ready to submit.",
   export: "Export CSV",
   noMatchedColumns: "Match at least one column before exporting.",
+  previous: "Previous",
+  next: "Next",
+  pageInfo: "Showing {start}-{end} of {total} rows",
+  page: "Page {page} of {pages}",
 };
 
 export interface ButtonStyle {
@@ -80,6 +88,7 @@ export interface Settings {
   autoMatch?: boolean;
   labels?: Partial<Labels>;
   buttons?: ButtonsSettings;
+  pagination?: { enabled?: boolean; itemsPerPage?: number };
 }
 
 interface ResolvedSettings {
@@ -87,6 +96,7 @@ interface ResolvedSettings {
   autoMatch: boolean;
   labels: Labels;
   buttons: ButtonsSettings;
+  pagination: { enabled: boolean; itemsPerPage: number };
 }
 
 export interface WrongCell {
@@ -121,6 +131,8 @@ export class Matchy extends HTMLElement {
   currentSelectedcell: SelectedCell | null = null;
   wrongCells: WrongCell[] = [];
   cellIssues = new Map<string, string[]>();
+  editedCells = new Set<string>();
+  currentPage = 1;
 
   constructor(
     mainOptions: Option[] = [],
@@ -141,6 +153,10 @@ export class Matchy extends HTMLElement {
       autoMatch: setting.autoMatch ?? true,
       labels: { ...defaultLabels, ...setting.labels },
       buttons: setting.buttons ?? {},
+      pagination: {
+        enabled: setting.pagination?.enabled ?? false,
+        itemsPerPage: Math.max(1, setting.pagination?.itemsPerPage ?? 20),
+      },
     };
 
     this.shadow = this.attachShadow({ mode: "open" });
@@ -227,6 +243,22 @@ export class Matchy extends HTMLElement {
             border-radius: 4px;
             background-color: #fdecea;
             color: #842029;
+          }
+
+          .matchy-pagination {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 12px;
+          }
+
+          .matchy-pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
 
           .error-display.success {
@@ -316,12 +348,116 @@ export class Matchy extends HTMLElement {
       "table-striped",
     ]);
     this.shadow.appendChild(table);
+    this.shadow.appendChild(this.createPagination());
     this.hideElementById(ids.preSubmitFile);
     this.hideElementById(ids.submitFile);
     this.hideElementById(ids.resetFile);
     this.hideElementById(ids.errorDisplay);
     this.hideElementById(ids.exportFile);
+    this.hideElementById(ids.pagination);
     this.initEventListeners();
+  }
+
+  createPagination() {
+    const container = createElement(tag.div, { id: ids.pagination }, [
+      "matchy-pagination",
+    ]);
+    const info = createElement(tag.span, { id: ids.paginationInfo });
+    const controls = createElement(tag.div, {}, ["matchy-pagination-controls"]);
+    const pageButton = (id: string, text: string, onClick: () => void) =>
+      createButton(
+        text,
+        { id, type: button.button },
+        ["btn", "btn-sm", "btn-outline-secondary"],
+        { click: onClick }
+      );
+    controls.appendChild(
+      pageButton(ids.previousPage, this.settings.labels.previous, () =>
+        this.goToPage(this.currentPage - 1)
+      )
+    );
+    controls.appendChild(createElement(tag.span, { id: ids.paginationPage }));
+    controls.appendChild(
+      pageButton(ids.nextPage, this.settings.labels.next, () =>
+        this.goToPage(this.currentPage + 1)
+      )
+    );
+    container.appendChild(info);
+    container.appendChild(controls);
+    return container;
+  }
+
+  activeRowIndexes() {
+    const indexes: number[] = [];
+    for (let rowIndex = 0; rowIndex < this.rows.length; rowIndex++) {
+      if (!this.deletedRows.has(rowIndex)) indexes.push(rowIndex);
+    }
+    return indexes;
+  }
+
+  totalPages() {
+    const perPage = this.settings.pagination.itemsPerPage;
+    return Math.max(1, Math.ceil(this.activeRowIndexes().length / perPage));
+  }
+
+  pageRowIndexes() {
+    const active = this.activeRowIndexes();
+    if (!this.settings.pagination.enabled) return active;
+    const perPage = this.settings.pagination.itemsPerPage;
+    const start = (this.currentPage - 1) * perPage;
+    return active.slice(start, start + perPage);
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages() || page === this.currentPage) {
+      return;
+    }
+    if (this.currentSelectedcell) {
+      const { cell, rowIndex, colIndex } = this.currentSelectedcell;
+      this.endEditMode(cell, rowIndex, colIndex);
+    }
+    this.currentPage = page;
+    this.renderBody();
+  }
+
+  renderBody() {
+    const table = this.shadow.querySelector(
+      `table[id='${ids.fileContent}']`
+    ) as HTMLTableElement | null;
+    if (table == null) return;
+    table.tBodies[0]?.replaceChildren();
+    this.generateTableBody(table);
+    this.paintRenderedCells();
+    this.updatePagination();
+  }
+
+  updatePagination() {
+    const container = this.shadow.getElementById(ids.pagination);
+    if (container == null) return;
+    const total = this.activeRowIndexes().length;
+    if (!this.settings.pagination.enabled || total === 0) {
+      container.style.display = "none";
+      return;
+    }
+    const pages = this.totalPages();
+    const perPage = this.settings.pagination.itemsPerPage;
+    const labels = this.settings.labels;
+    const start = (this.currentPage - 1) * perPage + 1;
+    const end = Math.min(this.currentPage * perPage, total);
+    container.style.display = "flex";
+    (this.shadow.getElementById(ids.paginationInfo) as HTMLElement).textContent =
+      labels.pageInfo
+        .replace("{start}", String(start))
+        .replace("{end}", String(end))
+        .replace("{total}", String(total));
+    (this.shadow.getElementById(ids.paginationPage) as HTMLElement).textContent =
+      labels.page
+        .replace("{page}", String(this.currentPage))
+        .replace("{pages}", String(pages));
+    (this.shadow.getElementById(ids.previousPage) as HTMLButtonElement).disabled =
+      this.currentPage === 1;
+    (this.shadow.getElementById(ids.nextPage) as HTMLButtonElement).disabled =
+      this.currentPage === pages;
   }
 
   createActionButton(
@@ -391,6 +527,8 @@ export class Matchy extends HTMLElement {
     this.deletedRows = new Set<number>();
     this.wrongCells = [];
     this.cellIssues = new Map<string, string[]>();
+    this.editedCells = new Set<string>();
+    this.currentPage = 1;
   }
 
   onSelectOption(select: any, th: any) {
@@ -516,12 +654,18 @@ export class Matchy extends HTMLElement {
 
   paintRenderedCells() {
     this.shadow.querySelectorAll(`td[${field.col}]`).forEach((cell) => {
-      this.paintCell(
-        cell,
-        Number(cell.getAttribute(field.row)),
-        Number(cell.getAttribute(field.col))
-      );
+      const rowIndex = Number(cell.getAttribute(field.row));
+      const colIndex = Number(cell.getAttribute(field.col));
+      this.paintCell(cell, rowIndex, colIndex);
+      if (this.editedCells.has(this.cellKey(rowIndex, colIndex))) {
+        this.addCellState(cell, editedCellClassName);
+      }
     });
+    for (const wrongCell of this.wrongCells) {
+      this.cellsAt(wrongCell).forEach((cell) =>
+        this.markInvalidCell(cell, wrongCell.issues)
+      );
+    }
   }
 
   errorCount() {
@@ -572,6 +716,11 @@ export class Matchy extends HTMLElement {
     this.addCellState(cell, editedCellClassName);
     this.removeCellState(cell, editableCellClassName);
     this.currentSelectedcell = null;
+    this.editedCells.add(this.cellKey(rowIndex, colIndex));
+    this.wrongCells = this.wrongCells.filter(
+      (wrongCell) =>
+        wrongCell.rowIndex !== rowIndex || wrongCell.colIndex !== colIndex
+    );
     if (!this.context.preSubmitFileContext) return;
     this.validateCell(rowIndex, colIndex);
     this.paintCell(cell, rowIndex, colIndex);
@@ -623,21 +772,31 @@ export class Matchy extends HTMLElement {
 
   deleteRow(row: any) {
     this.deletedRows.add(row);
-    this.hideRow(row);
     for (const key of [...this.cellIssues.keys()]) {
       if (key.startsWith(`${row},`)) this.cellIssues.delete(key);
+    }
+    if (this.settings.pagination.enabled) {
+      this.currentPage = Math.min(this.currentPage, this.totalPages());
+      this.renderBody();
+    } else {
+      this.hideRow(row);
     }
     this.updateErrorDisplay();
   }
 
   generateTableBody(table: any) {
-    for (const [rowIndex, row] of this.rows.entries()) {
-      if (this.deletedRows.has(rowIndex)) {
-        continue;
-      }
-      const tableRow = table.insertRow();
+    const tbody = table.tBodies[0] ?? table.createTBody();
+    for (const rowIndex of this.pageRowIndexes()) {
+      const row = this.rows[rowIndex];
+      const tableRow = tbody.insertRow();
       tableRow.setAttribute(field.row, rowIndex);
-      for (const [colIndex, col] of this.fileHeader.entries()) {
+      for (const colIndex of this.fileHeader.keys()) {
+        if (
+          this.context.preSubmitFileContext &&
+          !this.values.has(String(colIndex))
+        ) {
+          continue;
+        }
         const cell = tableRow.insertCell();
         cell.setAttribute(field.row, rowIndex);
         cell.setAttribute(field.col, colIndex);
@@ -683,11 +842,13 @@ export class Matchy extends HTMLElement {
     }
 
     table.innerHTML = "";
+    this.currentPage = 1;
     this.generateTableBody(table);
     this.generateTableHead(table);
     if (this.settings.autoMatch) {
       this.autoMatch();
     }
+    this.updatePagination();
   }
 
   handleFileUpload(event: any) {
