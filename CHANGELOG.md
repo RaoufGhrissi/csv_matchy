@@ -10,6 +10,7 @@ All notable changes to this project are documented here. This project follows [S
 - `labels` setting: every text matchy shows (file label, buttons, delete confirmation, file alerts) can be replaced, e.g. in French. Missing labels fall back to `defaultLabels` (English).
 - Live error count (with `validate` on): after Pre Submit, a message shows how many cells are invalid and updates as cells are fixed or rows deleted. Submit is disabled until it reaches 0. Apps that validate on their backend (`validate: false`) are not affected.
 - CSV export: an "Export CSV" button (shown once a file is loaded) downloads the matched columns under their display names, with edits applied and deleted rows left out. Values with commas, quotes or line breaks are quoted, and the file starts with a UTF-8 BOM so Excel shows accents. Also available as `exportCsv(fileName?)` and `toCsv()`.
+- `pagination` setting: `{ enabled: true, itemsPerPage: 20 }` shows the table a page at a time, with the row range, the page number and Previous/Next. Edits, errors and `markWrongCells` marks are kept across pages, validation and the error count cover every page, and the result and export include all rows. Off by default.
 - `buttons` setting: `{ preSubmit, submit, reset, export }`, each `{ className, style }`, replaces the default Bootstrap classes or adds inline styles.
 - `Settings`, `Labels`, `ButtonStyle`, `ButtonsSettings` and `WrongCell` types and `defaultLabels` are exported.
 
