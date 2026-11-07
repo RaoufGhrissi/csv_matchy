@@ -42,6 +42,8 @@ export interface Labels {
   unreadableFile: string;
   errorCount: string;
   noErrors: string;
+  export: string;
+  noMatchedColumns: string;
 }
 
 export const defaultLabels: Labels = {
@@ -57,6 +59,8 @@ export const defaultLabels: Labels = {
   errorCount:
     "{count} invalid cell(s). Fix the cells in red before submitting, click a cell to edit it.",
   noErrors: "All cells are valid. Your data is ready to submit.",
+  export: "Export CSV",
+  noMatchedColumns: "Match at least one column before exporting.",
 };
 
 export interface ButtonStyle {
@@ -68,6 +72,7 @@ export interface ButtonsSettings {
   preSubmit?: ButtonStyle;
   submit?: ButtonStyle;
   reset?: ButtonStyle;
+  export?: ButtonStyle;
 }
 
 export interface Settings {
@@ -290,6 +295,14 @@ export class Matchy extends HTMLElement {
         }
       )
     );
+    form.appendChild(
+      this.createActionButton(
+        "export",
+        ids.exportFile,
+        ["btn", "btn-outline-secondary", "mt-2", "m-2"],
+        () => this.exportCsv()
+      )
+    );
     const errorDisplay = createElement(tag.div, { id: ids.errorDisplay }, [
       "error-display",
     ]);
@@ -307,6 +320,7 @@ export class Matchy extends HTMLElement {
     this.hideElementById(ids.submitFile);
     this.hideElementById(ids.resetFile);
     this.hideElementById(ids.errorDisplay);
+    this.hideElementById(ids.exportFile);
     this.initEventListeners();
   }
 
@@ -698,6 +712,7 @@ export class Matchy extends HTMLElement {
       this.displayElementById(
         this.settings.validate ? ids.preSubmitFile : ids.submitFile
       );
+      this.displayElementById(ids.exportFile);
     }).catch((error: unknown) => {
       console.error(error);
       alert(this.settings.labels.unreadableFile);
@@ -708,6 +723,7 @@ export class Matchy extends HTMLElement {
     this.init();
     this.context.preSubmitFileContext = false;
     this.updateErrorDisplay();
+    this.hideElementById(ids.exportFile);
     const fileInput: HTMLInputElement = this.shadow.getElementById(
       ids.uploadedFile
     ) as HTMLInputElement;
@@ -778,6 +794,41 @@ export class Matchy extends HTMLElement {
     return this.shadow.querySelectorAll(
       `td[row="${rowIndex}"][col="${colIndex}"]`
     );
+  }
+
+  toCsv(): string {
+    const columns = this.cols
+      .map((col, colIndex) => ({ col, colIndex }))
+      .filter(({ col }) => !isEmpty(col.value));
+    const escape = (value: unknown) => {
+      const text = String(value ?? "");
+      return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const lines = [columns.map(({ col }) => escape(col.display_value)).join(",")];
+    for (const [rowIndex, row] of this.rows.entries()) {
+      if (this.deletedRows.has(rowIndex)) continue;
+      lines.push(columns.map(({ colIndex }) => escape(row[colIndex])).join(","));
+    }
+    return lines.join("\r\n");
+  }
+
+  exportCsv(fileName = `exported_data_${Date.now()}.csv`) {
+    if (!this.cols.some((col) => !isEmpty(col.value))) {
+      alert(this.settings.labels.noMatchedColumns);
+      return;
+    }
+    const blob = new Blob(["\uFEFF" + this.toCsv()], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   async submit(data: UploadEntry) {

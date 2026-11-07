@@ -9,7 +9,8 @@ All notable changes to this project are documented here. This project follows [S
 - `markWrongCells([{ rowIndex, colIndex, issues }])` marks cells rejected by your backend, clearing the cells it marked last time, and `clearWrongCells()` clears them. Positions are the `rowIndex`/`colIndex` of the cells sent to `submit`.
 - `labels` setting: every text matchy shows (file label, buttons, delete confirmation, file alerts) can be replaced, e.g. in French. Missing labels fall back to `defaultLabels` (English).
 - Live error count (with `validate` on): after Pre Submit, a message shows how many cells are invalid and updates as cells are fixed or rows deleted. Submit is disabled until it reaches 0. Apps that validate on their backend (`validate: false`) are not affected.
-- `buttons` setting: `{ preSubmit, submit, reset }`, each `{ className, style }`, replaces the default Bootstrap classes or adds inline styles.
+- CSV export: an "Export CSV" button (shown once a file is loaded) downloads the matched columns under their display names, with edits applied and deleted rows left out. Values with commas, quotes or line breaks are quoted, and the file starts with a UTF-8 BOM so Excel shows accents. Also available as `exportCsv(fileName?)` and `toCsv()`.
+- `buttons` setting: `{ preSubmit, submit, reset, export }`, each `{ className, style }`, replaces the default Bootstrap classes or adds inline styles.
 - `Settings`, `Labels`, `ButtonStyle`, `ButtonsSettings` and `WrongCell` types and `defaultLabels` are exported.
 
 ### Changed
