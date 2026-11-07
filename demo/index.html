@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>csv_matchy demo</title>
+    <meta
+      name="description"
+      content="Try csv_matchy: import an Excel file, match its columns, fix invalid cells and submit, in the browser or with server validation."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%230969da'/%3E%3Cpath d='M4 5h8M4 8h8M4 11h5' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>csv_matchy</h1>
+      <p class="tagline" id="tagline"></p>
+      <nav class="links">
+        <a href="https://github.com/RaoufGhrissi/csv_matchy">GitHub</a>
+        <a href="https://www.npmjs.com/package/csv_matchy">npm</a>
+        <a href="https://github.com/RaoufGhrissi/csv_matchy/blob/main/docs/tutorial.md">Tutorial</a>
+      </nav>
+    </header>
+
+    <main>
+      <ol class="steps">
+        <li>
+          <span id="step-download"></span>
+          <a class="sample" id="sample" href="./products.xlsx" download></a>.
+          <span id="step-download-after"></span>
+        </li>
+        <li id="step-choose"></li>
+        <li id="step-fix"></li>
+      </ol>
+
+      <div class="toolbar">
+        <div class="tabs" role="tablist" aria-label="Validation mode">
+          <button role="tab" id="tab-browser" aria-selected="true"></button>
+          <button role="tab" id="tab-server" aria-selected="false"></button>
+        </div>
+        <div class="lang" role="group" aria-label="Language">
+          <button id="lang-en" aria-pressed="true">EN</button>
+          <button id="lang-fr" aria-pressed="false">FR</button>
+        </div>
+      </div>
+
+      <p id="mode-help" class="help"></p>
+
+      <section id="importer" aria-live="polite"></section>
+
+      <section class="result" aria-live="polite">
+        <h2 id="result-title"></h2>
+        <p id="result-status">Nothing submitted yet.</p>
+        <pre id="result-data" hidden></pre>
+      </section>
+    </main>
+
+    <footer>
+      ISC license · Abderraouf Ghrissi and Mahdi Cheikhrouhou
+    </footer>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

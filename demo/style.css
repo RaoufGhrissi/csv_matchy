@@ -1,0 +1,128 @@
+:root {
+  --text: #1f2328;
+  --muted: #59636e;
+  --bg: #ffffff;
+  --panel: #f6f8fa;
+  --border: #d1d9e0;
+  --accent: #0969da;
+  --accent-text: #ffffff;
+  color-scheme: light;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.hero,
+main,
+footer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.hero {
+  padding-top: 32px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.tagline {
+  margin: 8px 0 12px;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.links {
+  display: flex;
+  gap: 16px;
+}
+
+a {
+  color: var(--accent);
+}
+
+.steps {
+  margin: 24px 0 16px;
+  padding-left: 20px;
+}
+
+.sample {
+  font-weight: 600;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.tabs,
+.lang {
+  display: flex;
+  gap: 4px;
+}
+
+.tabs button,
+.lang button {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"],
+.lang button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.help {
+  color: var(--muted);
+  margin: 12px 0;
+}
+
+#importer {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.result {
+  margin: 24px 0;
+}
+
+.result h2 {
+  font-size: 1.1rem;
+  margin: 0 0 4px;
+}
+
+.result pre {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 12px;
+}
+
+footer {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding-bottom: 32px;
+}

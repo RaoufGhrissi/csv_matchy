@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "build": "tsc",
+    "demo": "vite --config demo/vite.config.ts",
+    "build:demo": "tsc -p demo && vite build --config demo/vite.config.ts",
     "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -34,6 +36,7 @@
     "string-similarity": "^4.0.4"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vite": "^5.4.10"
   }
 }
