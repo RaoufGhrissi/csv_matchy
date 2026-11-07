@@ -1,5 +1,6 @@
 export { default as Matchy } from "./main";
 export { default } from "./main";
+export type { Settings, WrongCell } from "./main";
 export { Condition } from "./models/classes/condition";
 export { Option } from "./models/classes/option";
 export { Cell } from "./models/classes/cell";

@@ -1,5 +1,7 @@
+import { Cell } from "./cell";
+
 export class UploadEntry {
-  lines: Object[] = [];
+  lines: { [key: string]: Cell }[] = [];
 
   constructor() {}
 }
