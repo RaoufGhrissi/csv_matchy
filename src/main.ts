@@ -40,6 +40,8 @@ export interface Labels {
   noFile: string;
   wrongFileType: string;
   unreadableFile: string;
+  errorCount: string;
+  noErrors: string;
 }
 
 export const defaultLabels: Labels = {
@@ -52,18 +54,34 @@ export const defaultLabels: Labels = {
   wrongFileType: "Please select an Excel file (.xlsx).",
   unreadableFile:
     "Could not read this file. Please check it is a valid .xlsx file.",
+  errorCount:
+    "{count} invalid cell(s). Fix the cells in red before submitting, click a cell to edit it.",
+  noErrors: "All cells are valid. Your data is ready to submit.",
 };
+
+export interface ButtonStyle {
+  className?: string;
+  style?: string;
+}
+
+export interface ButtonsSettings {
+  preSubmit?: ButtonStyle;
+  submit?: ButtonStyle;
+  reset?: ButtonStyle;
+}
 
 export interface Settings {
   validate?: boolean;
   autoMatch?: boolean;
   labels?: Partial<Labels>;
+  buttons?: ButtonsSettings;
 }
 
 interface ResolvedSettings {
   validate: boolean;
   autoMatch: boolean;
   labels: Labels;
+  buttons: ButtonsSettings;
 }
 
 export interface WrongCell {
@@ -97,6 +115,7 @@ export class Matchy extends HTMLElement {
   deletedRows: Set<number>;
   currentSelectedcell: SelectedCell | null = null;
   wrongCells: WrongCell[] = [];
+  cellIssues = new Map<string, string[]>();
 
   constructor(
     mainOptions: Option[] = [],
@@ -116,6 +135,7 @@ export class Matchy extends HTMLElement {
       validate: setting.validate ?? true,
       autoMatch: setting.autoMatch ?? true,
       labels: { ...defaultLabels, ...setting.labels },
+      buttons: setting.buttons ?? {},
     };
 
     this.shadow = this.attachShadow({ mode: "open" });
@@ -196,6 +216,19 @@ export class Matchy extends HTMLElement {
             content: "x";
           }
 
+          .error-display {
+            margin: 8px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: #fdecea;
+            color: #842029;
+          }
+
+          .error-display.success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+          }
+
         </style>`;
 
     importExternalUi(this.shadow);
@@ -230,44 +263,38 @@ export class Matchy extends HTMLElement {
     formGroup.appendChild(fileInput);
     form.appendChild(formGroup);
     form.appendChild(
-      createButton(
-        labels.preSubmit,
-        {
-          id: ids.preSubmitFile,
-          type: button.button,
-        },
+      this.createActionButton(
+        "preSubmit",
+        ids.preSubmitFile,
         ["btn", "btn-primary", "mt-2", "m-2"],
-        { click: () => this.preSubmitFile() }
+        () => this.preSubmitFile()
       )
     );
     form.appendChild(
-      createButton(
-        labels.submit,
-        {
-          id: ids.submitFile,
-          type: button.button,
-        },
+      this.createActionButton(
+        "submit",
+        ids.submitFile,
         ["btn", "btn-success", "mt-2", "m-2"],
-        { click: () => this.submitFile() }
+        () => this.submitFile()
       )
     );
     form.appendChild(
-      createButton(
-        labels.reset,
-        {
-          id: ids.resetFile,
-          type: button.button,
-        },
+      this.createActionButton(
+        "reset",
+        ids.resetFile,
         ["btn", "btn-success", "mt-2", "m-2"],
-        {
-          click: () => {
-            this.uploadFile();
-            this.hideElementById(ids.resetFile);
-            this.hideElementById(ids.submitFile);
-          },
+        () => {
+          this.uploadFile();
+          this.hideElementById(ids.resetFile);
+          this.hideElementById(ids.submitFile);
         }
       )
     );
+    const errorDisplay = createElement(tag.div, { id: ids.errorDisplay }, [
+      "error-display",
+    ]);
+    errorDisplay.setAttribute("role", "status");
+    form.appendChild(errorDisplay);
     container.appendChild(form);
     this.shadow.appendChild(container);
     const table = createElement(tag.table, { id: ids.fileContent }, [
@@ -279,7 +306,30 @@ export class Matchy extends HTMLElement {
     this.hideElementById(ids.preSubmitFile);
     this.hideElementById(ids.submitFile);
     this.hideElementById(ids.resetFile);
+    this.hideElementById(ids.errorDisplay);
     this.initEventListeners();
+  }
+
+  createActionButton(
+    name: keyof ButtonsSettings,
+    id: string,
+    defaultClasses: string[],
+    onClick: () => void
+  ) {
+    const custom = this.settings.buttons[name];
+    const classes = custom?.className
+      ? custom.className.split(/\s+/).filter(Boolean)
+      : defaultClasses;
+    const actionButton = createButton(
+      this.settings.labels[name],
+      { id, type: button.button },
+      classes,
+      { click: onClick }
+    );
+    if (custom?.style) {
+      actionButton.setAttribute("style", custom.style);
+    }
+    return actionButton;
   }
 
   initEventListeners() {
@@ -326,6 +376,7 @@ export class Matchy extends HTMLElement {
     this.context = new Context();
     this.deletedRows = new Set<number>();
     this.wrongCells = [];
+    this.cellIssues = new Map<string, string[]>();
   }
 
   onSelectOption(select: any, th: any) {
@@ -401,16 +452,88 @@ export class Matchy extends HTMLElement {
   }
 
   checkValidity(cell: any, index: any) {
-    const value = this.values.get(String(index));
-    if (isEmpty(value)) return;
-    const option = this.options.find((x) => x.value === value);
-    if (option == null) return;
-    const { valid, message } = this.checkCell(cell.innerText, option);
-    if (!valid) {
-      this.markInvalidCell(cell, message);
+    const rowIndex = Number(cell.getAttribute(field.row));
+    this.validateCell(rowIndex, Number(index));
+    this.paintCell(cell, rowIndex, Number(index));
+  }
+
+  cellKey(rowIndex: number, colIndex: number) {
+    return `${rowIndex},${colIndex}`;
+  }
+
+  validateCell(rowIndex: number, colIndex: number): string[] {
+    const key = this.cellKey(rowIndex, colIndex);
+    const value = this.values.get(String(colIndex));
+    const option = isEmpty(value)
+      ? undefined
+      : this.options.find((x) => x.value === value);
+    if (option == null || this.deletedRows.has(rowIndex)) {
+      this.cellIssues.delete(key);
+      return [];
+    }
+    const { valid, message } = this.checkCell(
+      String(this.rows[rowIndex][colIndex] ?? ""),
+      option
+    );
+    if (valid) {
+      this.cellIssues.delete(key);
+      return [];
+    }
+    this.cellIssues.set(key, message as string[]);
+    return message as string[];
+  }
+
+  validateAll() {
+    for (let rowIndex = 0; rowIndex < this.rows.length; rowIndex++) {
+      for (const colIndex of this.values.keys()) {
+        this.validateCell(rowIndex, Number(colIndex));
+      }
+    }
+  }
+
+  paintCell(cell: Element, rowIndex: number, colIndex: number) {
+    const issues = this.cellIssues.get(this.cellKey(rowIndex, colIndex));
+    if (issues) {
+      this.markInvalidCell(cell, issues);
     } else {
       this.markValidCell(cell);
     }
+  }
+
+  paintRenderedCells() {
+    this.shadow.querySelectorAll(`td[${field.col}]`).forEach((cell) => {
+      this.paintCell(
+        cell,
+        Number(cell.getAttribute(field.row)),
+        Number(cell.getAttribute(field.col))
+      );
+    });
+  }
+
+  errorCount() {
+    return this.cellIssues.size;
+  }
+
+  updateErrorDisplay() {
+    const display = this.shadow.getElementById(ids.errorDisplay);
+    const submit = this.shadow.getElementById(
+      ids.submitFile
+    ) as HTMLButtonElement | null;
+    if (!this.settings.validate || !this.context.preSubmitFileContext) {
+      if (display) display.style.display = "none";
+      if (submit) submit.disabled = false;
+      return;
+    }
+    const count = this.errorCount();
+    if (display) {
+      display.style.display = "block";
+      display.classList.toggle("success", count === 0);
+      display.textContent =
+        count === 0
+          ? this.settings.labels.noErrors
+          : this.settings.labels.errorCount.replace("{count}", String(count));
+    }
+    if (submit) submit.disabled = count > 0;
   }
 
   removeCellState(cell: any, state: string) {
@@ -436,14 +559,16 @@ export class Matchy extends HTMLElement {
     this.removeCellState(cell, editableCellClassName);
     this.currentSelectedcell = null;
     if (!this.context.preSubmitFileContext) return;
-    this.checkValidity(cell, colIndex);
+    this.validateCell(rowIndex, colIndex);
+    this.paintCell(cell, rowIndex, colIndex);
+    this.updateErrorDisplay();
   }
 
   startEditMode(cell: any, rowIndex: number, colIndex: number) {
     if (cell.classList.contains(editableCellClassName)) return;
     this.currentSelectedcell = new SelectedCell(cell, rowIndex, colIndex);
     this.markValidCell(cell);
-    const prevContent = cell.innerText;
+    const prevContent = String(this.rows[rowIndex][colIndex] ?? "");
     const input = createElement(
       tag.input,
       { type: "text", value: prevContent },
@@ -485,6 +610,10 @@ export class Matchy extends HTMLElement {
   deleteRow(row: any) {
     this.deletedRows.add(row);
     this.hideRow(row);
+    for (const key of [...this.cellIssues.keys()]) {
+      if (key.startsWith(`${row},`)) this.cellIssues.delete(key);
+    }
+    this.updateErrorDisplay();
   }
 
   generateTableBody(table: any) {
@@ -578,6 +707,7 @@ export class Matchy extends HTMLElement {
   uploadFile() {
     this.init();
     this.context.preSubmitFileContext = false;
+    this.updateErrorDisplay();
     const fileInput: HTMLInputElement = this.shadow.getElementById(
       ids.uploadedFile
     ) as HTMLInputElement;
@@ -606,17 +736,13 @@ export class Matchy extends HTMLElement {
   preSubmitFile() {
     this.context.preSubmitFileContext = true;
     this.deleteNotMatchedColumns();
-    for (let colIndex = 0; colIndex < this.cols.length; colIndex++) {
-      if (!this.values.has(String(colIndex))) continue;
-
-      this.shadow.querySelectorAll(`tr td[col="${colIndex}"]`).forEach((td) => {
-        this.checkValidity(td, colIndex);
-      });
-    }
+    this.validateAll();
+    this.paintRenderedCells();
 
     this.hideElementById(ids.preSubmitFile);
     this.displayElementById(ids.resetFile);
     this.displayElementById(ids.submitFile);
+    this.updateErrorDisplay();
   }
 
   deleteNotMatchedColumns() {
@@ -659,6 +785,14 @@ export class Matchy extends HTMLElement {
   }
 
   async submitFile() {
+    if (
+      this.settings.validate &&
+      this.context.preSubmitFileContext &&
+      this.errorCount() > 0
+    ) {
+      this.updateErrorDisplay();
+      return;
+    }
     const data = this.generateResult();
     await this.submit(data);
   }
