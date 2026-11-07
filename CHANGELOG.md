@@ -7,11 +7,15 @@ All notable changes to this project are documented here. This project follows [S
 ### Added
 - `autoMatch` setting: `new Matchy(options, { autoMatch: false })` leaves every column unmatched so the user picks them. Settings are now optional and default to `{ validate: true, autoMatch: true }`.
 - `markWrongCells([{ rowIndex, colIndex, issues }])` marks cells rejected by your backend, clearing the cells it marked last time, and `clearWrongCells()` clears them. Positions are the `rowIndex`/`colIndex` of the cells sent to `submit`.
-- `Settings` and `WrongCell` types are exported.
+- `labels` setting: every text matchy shows (file label, buttons, delete confirmation, file alerts) can be replaced, e.g. in French. Missing labels fall back to `defaultLabels` (English).
+- `Settings`, `Labels` and `WrongCell` types and `defaultLabels` are exported.
 
 ### Changed
 - The table fills its container and scrolls sideways on narrow screens, instead of squeezing columns and wrapping their content.
 - `generateResult()` and `submit()` are typed: `lines` is a list of `{ [field]: Cell }`.
+
+### Fixed
+- A column picked and then set back to empty was sent under an empty `""` key.
 
 ## 2.0.0 - 2026-10-13
 

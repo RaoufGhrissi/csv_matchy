@@ -136,7 +136,7 @@ export function createElement(tagName: string, attributes: Object = {}, classes:
 
 export function createHtmlElement(tag: any, text: string, attributes: Object = {}, classes: string[] = [], events: Object = {}) {
     const button = createElement(tag, attributes, classes, events);
-    button.innerText = text;
+    button.textContent = text;
     return button;
 }
 
