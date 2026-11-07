@@ -54,7 +54,7 @@ matchy.submit = async (data) => {
 document.getElementById("matchy")!.appendChild(matchy);
 ```
 
-Upload a file, review the column mappings, choose **Pre Submit** to validate, then edit cells and choose **Submit**. Invalid cells are highlighted and counted, and **Submit** stays disabled until none are left. Your application still decides whether to accept the submitted data.
+Upload a file, review the column mappings, choose **Pre Submit** to validate, then edit cells and choose **Submit**. Invalid cells are highlighted and counted; your application decides whether to accept the submitted data, or sets `blockInvalidSubmit` to keep **Submit** disabled until no invalid cell is left.
 
 Each submitted line maps field keys to cells containing `value`, `rowIndex`, and `colIndex`.
 
@@ -96,6 +96,7 @@ The second constructor argument is optional; every setting has a default.
 ```ts
 new Matchy(options, {
   validate: true,
+  blockInvalidSubmit: true,
   autoMatch: true,
   pagination: { enabled: true, itemsPerPage: 20 },
   labels: { submit: "Envoyer", reset: "Réinitialiser" },
@@ -105,21 +106,27 @@ new Matchy(options, {
 
 | Setting | Purpose | Default |
 | --- | --- | --- |
-| `validate` | Show **Pre Submit**, validate cells in the browser and block **Submit** while cells are invalid. Set `false` when your API validates: **Submit** is shown right away. | `true` |
+| `validate` | Show **Pre Submit** and validate cells in the browser, with a count of invalid cells. Set `false` when your API validates: **Submit** is shown right away. | `true` |
+| `blockInvalidSubmit` | With `validate`, keep **Submit** disabled while cells are invalid. | `false` |
 | `autoMatch` | Suggest a field for each column from its header. Set `false` to let the user pick every column. | `true` |
 | `pagination` | `{ enabled, itemsPerPage }`: show the table a page at a time. Edits and errors are kept across pages, and submit and export include every row. | `{ enabled: false, itemsPerPage: 20 }` |
 | `labels` | Replace any text Matchy shows. Missing labels use `defaultLabels`. | English |
 | `buttons` | `{ preSubmit, submit, reset, export }`, each `{ className, style }`. `className` replaces the default Bootstrap classes. | Bootstrap buttons |
 
-Labels are `selectFile`, `preSubmit`, `submit`, `reset`, `export`, `confirmDelete`, `noFile`, `wrongFileType`, `unreadableFile`, `noMatchedColumns`, `errorCount`, `noErrors`, `previous`, `next`, `pageInfo`, and `page`. Placeholders are replaced in `errorCount` (`{count}`), `pageInfo` (`{start}`, `{end}`, `{total}`), and `page` (`{page}`, `{pages}`):
+Labels cover the interface (`selectFile`, `preSubmit`, `submit`, `reset`, `export`, `confirmDelete`, `noFile`, `wrongFileType`, `unreadableFile`, `noMatchedColumns`, `errorCount`, `noErrors`, `previous`, `next`, `pageInfo`, `page`) and the validation messages (`mandatoryMissing`, `invalidInteger`, `invalidFloat`, `invalidBool`, `regexMismatch`, `lengthMismatch`, `valueMismatch`, and the comparer words `comparerGt`, `comparerGte`, `comparerLt`, `comparerLte`, `comparerE`, `comparerIn`). See `defaultLabels` for the English texts. Placeholders in braces are replaced: `{count}`; `{start}`, `{end}`, `{total}`; `{page}`, `{pages}`; `{pattern}`; `{comparer}` and `{value}`:
 
 ```ts
 labels: {
   errorCount: "{count} cellule(s) invalide(s).",
   pageInfo: "Lignes {start}-{end} sur {total}",
   page: "Page {page} sur {pages}",
+  mandatoryMissing: "Champ obligatoire manquant",
+  valueMismatch: "La valeur n'est pas {comparer} {value}",
+  comparerLte: "inférieure ou égale à",
 }
 ```
+
+A condition's `custom_fail_message` still takes priority over these messages.
 
 ### Export
 
