@@ -15,7 +15,6 @@ import {
   button,
   isEmpty,
   evaluateConditions,
-  textPerComparer,
 } from "./modules/common";
 import { Context } from "./models/classes/context";
 import { Cell } from "./models/classes/cell";
@@ -48,6 +47,19 @@ export interface Labels {
   next: string;
   pageInfo: string;
   page: string;
+  mandatoryMissing: string;
+  invalidInteger: string;
+  invalidFloat: string;
+  invalidBool: string;
+  regexMismatch: string;
+  lengthMismatch: string;
+  valueMismatch: string;
+  comparerGt: string;
+  comparerGte: string;
+  comparerLt: string;
+  comparerLte: string;
+  comparerE: string;
+  comparerIn: string;
 }
 
 export const defaultLabels: Labels = {
@@ -60,8 +72,7 @@ export const defaultLabels: Labels = {
   wrongFileType: "Please select an Excel file (.xlsx).",
   unreadableFile:
     "Could not read this file. Please check it is a valid .xlsx file.",
-  errorCount:
-    "{count} invalid cell(s). Fix the cells in red before submitting, click a cell to edit it.",
+  errorCount: "{count} invalid cell(s). Click a cell in red to edit it.",
   noErrors: "All cells are valid. Your data is ready to submit.",
   export: "Export CSV",
   noMatchedColumns: "Match at least one column before exporting.",
@@ -69,7 +80,35 @@ export const defaultLabels: Labels = {
   next: "Next",
   pageInfo: "Showing {start}-{end} of {total} rows",
   page: "Page {page} of {pages}",
+  mandatoryMissing: "Mandatory field missing",
+  invalidInteger: "It's not a valid integer",
+  invalidFloat: "It's not a valid float",
+  invalidBool: "Possible values are 'Yes' or 'No'",
+  regexMismatch: "Text doesn't match the regex pattern {pattern}",
+  lengthMismatch: "Text length is not {comparer} {value}",
+  valueMismatch: "Value is not {comparer} {value}",
+  comparerGt: "greater than",
+  comparerGte: "greater or equal than",
+  comparerLt: "lower than",
+  comparerLte: "lower or equal than",
+  comparerE: "equal",
+  comparerIn: "in",
 };
+
+const comparerLabels: Record<Comparer, keyof Labels> = {
+  [Comparer.gt]: "comparerGt",
+  [Comparer.gte]: "comparerGte",
+  [Comparer.lt]: "comparerLt",
+  [Comparer.lte]: "comparerLte",
+  [Comparer.e]: "comparerE",
+  [Comparer.in]: "comparerIn",
+};
+
+function fill(template: string, values: { [key: string]: unknown }) {
+  return template.replace(/\{(\w+)\}/g, (placeholder, key) =>
+    key in values ? String(values[key]) : placeholder
+  );
+}
 
 export interface ButtonStyle {
   className?: string;
@@ -85,6 +124,7 @@ export interface ButtonsSettings {
 
 export interface Settings {
   validate?: boolean;
+  blockInvalidSubmit?: boolean;
   autoMatch?: boolean;
   labels?: Partial<Labels>;
   buttons?: ButtonsSettings;
@@ -93,6 +133,7 @@ export interface Settings {
 
 interface ResolvedSettings {
   validate: boolean;
+  blockInvalidSubmit: boolean;
   autoMatch: boolean;
   labels: Labels;
   buttons: ButtonsSettings;
@@ -150,6 +191,7 @@ export class Matchy extends HTMLElement {
     this.setPossibleOptions(mainOptions);
     this.settings = {
       validate: setting.validate ?? true,
+      blockInvalidSubmit: setting.blockInvalidSubmit ?? false,
       autoMatch: setting.autoMatch ?? true,
       labels: { ...defaultLabels, ...setting.labels },
       buttons: setting.buttons ?? {},
@@ -446,14 +488,9 @@ export class Matchy extends HTMLElement {
     const end = Math.min(this.currentPage * perPage, total);
     container.style.display = "flex";
     (this.shadow.getElementById(ids.paginationInfo) as HTMLElement).textContent =
-      labels.pageInfo
-        .replace("{start}", String(start))
-        .replace("{end}", String(end))
-        .replace("{total}", String(total));
+      fill(labels.pageInfo, { start, end, total });
     (this.shadow.getElementById(ids.paginationPage) as HTMLElement).textContent =
-      labels.page
-        .replace("{page}", String(this.currentPage))
-        .replace("{pages}", String(pages));
+      fill(labels.page, { page: this.currentPage, pages });
     (this.shadow.getElementById(ids.previousPage) as HTMLButtonElement).disabled =
       this.currentPage === 1;
     (this.shadow.getElementById(ids.nextPage) as HTMLButtonElement).disabled =
@@ -689,9 +726,11 @@ export class Matchy extends HTMLElement {
       display.textContent =
         count === 0
           ? this.settings.labels.noErrors
-          : this.settings.labels.errorCount.replace("{count}", String(count));
+          : fill(this.settings.labels.errorCount, { count });
     }
-    if (submit) submit.disabled = count > 0;
+    if (submit) {
+      submit.disabled = this.settings.blockInvalidSubmit && count > 0;
+    }
   }
 
   removeCellState(cell: any, state: string) {
@@ -999,6 +1038,7 @@ export class Matchy extends HTMLElement {
   async submitFile() {
     if (
       this.settings.validate &&
+      this.settings.blockInvalidSubmit &&
       this.context.preSubmitFileContext &&
       this.errorCount() > 0
     ) {
@@ -1027,7 +1067,10 @@ export class Matchy extends HTMLElement {
   checkCell(cellValue: string, option: Option) {
     if (isEmpty(cellValue)) {
       if (option.mandatory) {
-        return { valid: false, message: ["Mandatory field missing"] };
+        return {
+          valid: false,
+          message: [this.settings.labels.mandatoryMissing],
+        };
       } else {
         return { valid: true, message: [] };
       }
@@ -1052,16 +1095,15 @@ export class Matchy extends HTMLElement {
   getInvalidCheckMessage(condition: Condition) {
     if (!isEmpty(condition.custom_fail_message)) {
       return condition.custom_fail_message;
-    } else if (condition.property === ConditionProperty.regex) {
-      return `Text doesn't match the regex pattern ${condition.value}`;
+    }
+    const labels = this.settings.labels;
+    const comparer = labels[comparerLabels[condition.comparer]];
+    if (condition.property === ConditionProperty.regex) {
+      return fill(labels.regexMismatch, { pattern: condition.value });
     } else if (condition.property === ConditionProperty.length) {
-      return `Text length is not ${textPerComparer[condition.comparer]} ${
-        condition.value
-      }`;
+      return fill(labels.lengthMismatch, { comparer, value: condition.value });
     } else if (condition.property === ConditionProperty.value) {
-      return `Value is not ${textPerComparer[condition.comparer]} ${
-        condition.value
-      }`;
+      return fill(labels.valueMismatch, { comparer, value: condition.value });
     }
     return "";
   }
@@ -1111,11 +1153,11 @@ export class Matchy extends HTMLElement {
 
   checkType(value: string, type: FieldType) {
     if (type === FieldType.integer) {
-      return [this.isValidInteger(value), "It's not a valid integer"];
+      return [this.isValidInteger(value), this.settings.labels.invalidInteger];
     } else if (type === FieldType.float) {
-      return [this.isValidFloat(value), "It's not a valid float"];
+      return [this.isValidFloat(value), this.settings.labels.invalidFloat];
     } else if (type === FieldType.bool) {
-      return [["Yes", "No"].includes(value), "Possible values are 'Yes' or 'No'"];
+      return [["Yes", "No"].includes(value), this.settings.labels.invalidBool];
     }
 
     return [true, ""];
