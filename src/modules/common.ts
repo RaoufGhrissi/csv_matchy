@@ -24,6 +24,7 @@ export const ids = {
   fileContent: "fileContent",
   uploadedFile: "uploadedFile",
   errorDisplay: "errorDisplay",
+  exportFile: "exportFile",
 };
 
 export const bootstrap: { [key: string]: string }  = {
