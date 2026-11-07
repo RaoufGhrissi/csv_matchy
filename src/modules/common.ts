@@ -23,6 +23,7 @@ export const ids = {
   resetFile: "reset",
   fileContent: "fileContent",
   uploadedFile: "uploadedFile",
+  errorDisplay: "errorDisplay",
 };
 
 export const bootstrap: { [key: string]: string }  = {
