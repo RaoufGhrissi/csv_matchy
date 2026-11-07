@@ -8,8 +8,10 @@ A TypeScript web component for importing Excel spreadsheets, matching columns to
 ## Features
 
 - Upload `.xlsx` files and automatically suggest column mappings.
-- Validate required values, types, lengths, ranges, and regular expressions.
-- Edit cells, remove rows, and highlight invalid values.
+- Validate required values, types, lengths, ranges, and regular expressions, with a live count of invalid cells.
+- Edit cells, remove rows, and highlight invalid values, including errors returned by your API.
+- Paginate large files and export the edited table as CSV.
+- Translate every label, and restyle the buttons.
 - Submit mapped data to your own application or API.
 
 CSV and `.xls` uploads are not supported.
@@ -52,7 +54,7 @@ matchy.submit = async (data) => {
 document.getElementById("matchy")!.appendChild(matchy);
 ```
 
-Upload a file, review the column mappings, choose **Pre Submit** to validate, then edit cells and choose **Submit**. Validation highlights errors; your application controls whether to accept the submitted data.
+Upload a file, review the column mappings, choose **Pre Submit** to validate, then edit cells and choose **Submit**. Invalid cells are highlighted and counted, and **Submit** stays disabled until none are left. Your application still decides whether to accept the submitted data.
 
 Each submitted line maps field keys to cells containing `value`, `rowIndex`, and `colIndex`.
 
@@ -86,6 +88,42 @@ const maxLength = new Condition(ConditionProperty.length, 30, Comparer.lte);
 const allowedValues = new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in);
 const registrationNumber = new Condition(ConditionProperty.regex, "^\\d{8}-\\d{2}$");
 ```
+
+### Settings
+
+The second constructor argument is optional; every setting has a default.
+
+```ts
+new Matchy(options, {
+  validate: true,
+  autoMatch: true,
+  pagination: { enabled: true, itemsPerPage: 20 },
+  labels: { submit: "Envoyer", reset: "Réinitialiser" },
+  buttons: { submit: { className: "btn btn-dark", style: "border-radius: 0" } },
+});
+```
+
+| Setting | Purpose | Default |
+| --- | --- | --- |
+| `validate` | Show **Pre Submit**, validate cells in the browser and block **Submit** while cells are invalid. Set `false` when your API validates: **Submit** is shown right away. | `true` |
+| `autoMatch` | Suggest a field for each column from its header. Set `false` to let the user pick every column. | `true` |
+| `pagination` | `{ enabled, itemsPerPage }`: show the table a page at a time. Edits and errors are kept across pages, and submit and export include every row. | `{ enabled: false, itemsPerPage: 20 }` |
+| `labels` | Replace any text Matchy shows. Missing labels use `defaultLabels`. | English |
+| `buttons` | `{ preSubmit, submit, reset, export }`, each `{ className, style }`. `className` replaces the default Bootstrap classes. | Bootstrap buttons |
+
+Labels are `selectFile`, `preSubmit`, `submit`, `reset`, `export`, `confirmDelete`, `noFile`, `wrongFileType`, `unreadableFile`, `noMatchedColumns`, `errorCount`, `noErrors`, `previous`, `next`, `pageInfo`, and `page`. Placeholders are replaced in `errorCount` (`{count}`), `pageInfo` (`{start}`, `{end}`, `{total}`), and `page` (`{page}`, `{pages}`):
+
+```ts
+labels: {
+  errorCount: "{count} cellule(s) invalide(s).",
+  pageInfo: "Lignes {start}-{end} sur {total}",
+  page: "Page {page} sur {pages}",
+}
+```
+
+### Export
+
+Once a file is loaded, **Export CSV** downloads the matched columns under their display names, with edits applied and deleted rows left out. The file is UTF-8 with a BOM, so Excel shows accents. Call `matchy.exportCsv(fileName)` to trigger it yourself, or `matchy.toCsv()` to get the text.
 
 ### Angular
 
@@ -142,20 +180,17 @@ export function SpreadsheetImport() {
 
 ### Errors from your API
 
-Each submitted cell includes its original zero-based `rowIndex` and `colIndex`. Use those coordinates to highlight errors returned by your API inside Matchy's Shadow DOM:
+Each submitted cell includes its original zero-based `rowIndex` and `colIndex`. Send them to your API, have it return the cells it rejects with those coordinates, and pass them to `markWrongCells`:
 
 ```ts
-const rowIndex = 0;
-const colIndex = 1;
-const cell = matchy.matchyQuerySelector(
-  `td[row="${rowIndex}"][col="${colIndex}"]`,
-);
-if (cell) {
-  matchy.markInvalidCell(cell, ["This value already exists."]);
-}
+matchy.submit = async (data) => {
+  const response = await api.import(data.lines);
+  // response.wrong_cells: [{ rowIndex: 0, colIndex: 1, issues: ["This value already exists."] }]
+  matchy.markWrongCells(response.wrong_cells);
+};
 ```
 
-Use `matchy.markValidCell(cell)` to clear the error state. Keep API response fields separate from the submitted payload, which contains `lines`.
+Each call clears the cells marked by the previous one, so the table always shows the latest response. Marks are kept across pages, and editing a cell clears its mark. `matchy.clearWrongCells()` clears them all. Use `validate: false` when your API does all the validation.
 
 ## Contributing
 

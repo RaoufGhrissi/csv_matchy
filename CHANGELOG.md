@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. This project follows [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 2.1.0 - 2026-11-07
 
 ### Added
 - `autoMatch` setting: `new Matchy(options, { autoMatch: false })` leaves every column unmatched so the user picks them. Settings are now optional and default to `{ validate: true, autoMatch: true }`.
