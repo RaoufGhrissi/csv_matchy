@@ -1,11 +1,11 @@
-# Tutorial: import a product catalog with csv_matchy
+# Tutorial: import a product catalog with sheet-matchy
 
 This tutorial builds a spreadsheet import for a product catalog, twice:
 
 1. **[Validation in the browser](#part-1-validation-in-the-browser):** matchy checks every cell before anything is sent.
 2. **[Validation on a server](#part-2-validation-on-a-server):** matchy sends the cells to your API, which checks them and returns the ones to fix.
 
-Both run in the [live demo](https://raoufghrissi.github.io/csv_matchy/). Use its sample file, [products.xlsx](../demo/public/products.xlsx), to follow along. It has 25 products and a few mistakes on purpose.
+Both run in the [live demo](https://raoufghrissi.github.io/sheet-matchy/). Use its sample file, [products.xlsx](../demo/public/products.xlsx), to follow along. It has 25 products and a few mistakes on purpose.
 
 | Column | Rule |
 | --- | --- |
@@ -18,10 +18,10 @@ Both run in the [live demo](https://raoufghrissi.github.io/csv_matchy/). Use its
 ## Setup
 
 ```sh
-npm install csv_matchy
+npm install sheet-matchy
 ```
 
-csv_matchy is a web component, so it works with any framework or none. It needs a bundler (Vite, Angular CLI, webpack, …). Add a container to your page:
+sheet-matchy is a web component, so it works with any framework or none. It needs a bundler (Vite, Angular CLI, webpack, …). Add a container to your page:
 
 ```html
 <div id="importer"></div>
@@ -34,7 +34,7 @@ Describe each field with an `Option`: the name shown to the user, the key your a
 ```ts
 import {
   Matchy, Option, Condition, FieldType, ConditionProperty, Comparer,
-} from "csv_matchy";
+} from "sheet-matchy";
 
 const options = [
   new Option("SKU", "sku", true, FieldType.string, [
@@ -138,7 +138,7 @@ markWrongCells(wrong_cells)                ◄──  { created, wrong_cells: [{
 Options only need a name and a key. `validate: false` removes Pre Submit, so **Submit** is shown as soon as the file is loaded:
 
 ```ts
-import { Matchy, Option } from "csv_matchy";
+import { Matchy, Option } from "sheet-matchy";
 
 const matchy = new Matchy(
   [
@@ -322,4 +322,4 @@ matchy.submit = async ({ lines }) => {
 ## Next steps
 
 - All settings are in the [README](../README.md#settings).
-- Questions and ideas are welcome in [issues](https://github.com/RaoufGhrissi/csv_matchy/issues).
+- Questions and ideas are welcome in [issues](https://github.com/RaoufGhrissi/sheet-matchy/issues).

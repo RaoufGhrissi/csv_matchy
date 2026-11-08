@@ -1,4 +1,4 @@
-"""Product import API for csv_matchy, with FastAPI.
+"""Product import API for sheet-matchy, with FastAPI.
 
 Run: pip install -r requirements.txt && uvicorn main:app --reload
 """

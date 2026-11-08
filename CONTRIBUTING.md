@@ -15,7 +15,7 @@ Edit TypeScript files in `src/`. The build generates `dist/`, which is ignored b
 
 ## Reporting an issue
 
-Use the [issue tracker](https://github.com/RaoufGhrissi/csv_matchy/issues). Include the package version, browser and framework, steps to reproduce, and expected versus actual behavior. Use a small, anonymized spreadsheet when a sample is needed.
+Use the [issue tracker](https://github.com/RaoufGhrissi/sheet-matchy/issues). Include the package version, browser and framework, steps to reproduce, and expected versus actual behavior. Use a small, anonymized spreadsheet when a sample is needed.
 
 ## Opening a pull request
 

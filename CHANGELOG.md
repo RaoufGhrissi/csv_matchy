@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. This project follows [Semantic Versioning](https://semver.org/).
 
+## 2.1.1 - 2026-11-08
+
+### Changed
+- Renamed from `csv_matchy` to `sheet-matchy`, because it imports spreadsheets. The code is the same as 2.1.0: run `npm uninstall csv_matchy && npm install sheet-matchy`, then import from `"sheet-matchy"` instead of `"csv_matchy"`. The `<app-matchy>` element and the `Matchy` class keep their names.
+- The live demo moved to https://raoufghrissi.github.io/sheet-matchy/ and the repository to https://github.com/RaoufGhrissi/sheet-matchy.
+
 ## 2.1.0 - 2026-11-07
 
 ### Added

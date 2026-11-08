@@ -1,4 +1,4 @@
-// Product import API for csv_matchy, with Express.
+// Product import API for sheet-matchy, with Express.
 // Run: npm install && npm start
 
 import express from "express";
