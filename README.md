@@ -7,6 +7,8 @@ A TypeScript web component for importing Excel spreadsheets, matching columns to
 
 **[Try the live demo](https://raoufghrissi.github.io/sheet-matchy/)** · **[Tutorial](docs/tutorial.md)**: validation in the browser, or on your server with FastAPI or Express examples.
 
+[![Demo: choose an Excel file, Pre Submit, fix the cells in red, then submit](https://raw.githubusercontent.com/RaoufGhrissi/sheet-matchy/main/docs/demo.gif)](https://raoufghrissi.github.io/sheet-matchy/)
+
 > Formerly `csv_matchy`. To switch, run `npm uninstall csv_matchy && npm install sheet-matchy` and import from `"sheet-matchy"`. Nothing else changes.
 
 ## Features
