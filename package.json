@@ -1,6 +1,6 @@
 {
-  "name": "csv_matchy",
-  "version": "2.1.0",
+  "name": "sheet-matchy",
+  "version": "2.1.1",
   "description": "A TypeScript web component for importing Excel (.xlsx) spreadsheets, matching columns, and validating and editing cells before submission.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,18 +17,30 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RaoufGhrissi/csv_matchy.git"
+    "url": "git+https://github.com/RaoufGhrissi/sheet-matchy.git"
   },
   "keywords": [
+    "excel",
+    "xlsx",
+    "spreadsheet",
+    "import",
+    "importer",
     "csv",
-    "validator"
+    "column-mapping",
+    "data-validation",
+    "validator",
+    "web-component",
+    "angular",
+    "react",
+    "vue",
+    "typescript"
   ],
   "author": "Abderraouf Ghrissi & Mahdi Cheikhrouhou",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/RaoufGhrissi/csv_matchy/issues"
+    "url": "https://github.com/RaoufGhrissi/sheet-matchy/issues"
   },
-  "homepage": "https://github.com/RaoufGhrissi/csv_matchy#readme",
+  "homepage": "https://raoufghrissi.github.io/sheet-matchy/",
   "dependencies": {
     "@types/string-similarity": "^4.0.2",
     "date-fns": "^4.1.0",

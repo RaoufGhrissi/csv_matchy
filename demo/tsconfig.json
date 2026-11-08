@@ -8,7 +8,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "paths": { "csv_matchy": ["../src/index.ts"] }
+    "paths": { "sheet-matchy": ["../src/index.ts"] }
   },
   "include": ["main.ts", "catalog.ts"]
 }

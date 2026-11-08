@@ -1,4 +1,4 @@
-import { Matchy, type Labels, type Settings } from "csv_matchy";
+import { Matchy, type Labels, type Settings } from "sheet-matchy";
 import { browserOptions, fakeImportApi, serverOptions, type Lang, type Line } from "./catalog";
 
 type Mode = "browser" | "server";

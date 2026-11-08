@@ -5,7 +5,7 @@ import {
   FieldType,
   Option,
   type WrongCell,
-} from "csv_matchy";
+} from "sheet-matchy";
 
 export const CATEGORIES = ["Books", "Games", "Music", "Toys"];
 export const EXISTING_SKUS = ["BOO-0001", "GAM-0002"];

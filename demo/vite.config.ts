@@ -6,7 +6,7 @@ export default defineConfig({
   base: "./",
   resolve: {
     alias: {
-      csv_matchy: fileURLToPath(new URL("../src/index.ts", import.meta.url)),
+      "sheet-matchy": fileURLToPath(new URL("../src/index.ts", import.meta.url)),
     },
   },
   build: {

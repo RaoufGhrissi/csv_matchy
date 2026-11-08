@@ -1,11 +1,13 @@
 # Matchy
 
-[![npm version](https://img.shields.io/npm/v/csv_matchy)](https://www.npmjs.com/package/csv_matchy)
-[Build status](https://github.com/RaoufGhrissi/csv_matchy/actions/workflows/build.yml) · [ISC license](LICENSE)
+[![npm version](https://img.shields.io/npm/v/sheet-matchy)](https://www.npmjs.com/package/sheet-matchy)
+[Build status](https://github.com/RaoufGhrissi/sheet-matchy/actions/workflows/build.yml) · [ISC license](LICENSE)
 
 A TypeScript web component for importing Excel spreadsheets, matching columns to your fields, and validating and editing cells before submission.
 
-**[Try the live demo](https://raoufghrissi.github.io/csv_matchy/)** · **[Tutorial](docs/tutorial.md)**: validation in the browser, or on your server with FastAPI or Express examples.
+**[Try the live demo](https://raoufghrissi.github.io/sheet-matchy/)** · **[Tutorial](docs/tutorial.md)**: validation in the browser, or on your server with FastAPI or Express examples.
+
+> Formerly `csv_matchy`. To switch, run `npm uninstall csv_matchy && npm install sheet-matchy` and import from `"sheet-matchy"`. Nothing else changes.
 
 ## Features
 
@@ -21,7 +23,7 @@ CSV and `.xls` uploads are not supported.
 ## Installation
 
 ```sh
-npm install csv_matchy
+npm install sheet-matchy
 ```
 
 Use a browser application with a bundler such as Angular CLI, Vite, or webpack. TypeScript declarations are included.
@@ -39,7 +41,7 @@ Then create the component after the container is mounted:
 ```ts
 import {
   Matchy, Option, Condition, FieldType, ConditionProperty, Comparer,
-} from "csv_matchy";
+} from "sheet-matchy";
 
 const options = [
   new Option("Name", "name", true, FieldType.string),
@@ -84,7 +86,7 @@ Boolean fields accept `"Yes"` and `"No"`.
 Conditions use `ConditionProperty.value`, `length`, or `regex`. Comparers are `Comparer.gt`, `gte`, `lt`, `lte`, `e`, and `in`; the default is `e`. A condition value is a number, string, or array of strings. An optional custom message replaces the default failure message.
 
 ```ts
-import { Condition, ConditionProperty, Comparer } from "csv_matchy";
+import { Condition, ConditionProperty, Comparer } from "sheet-matchy";
 
 const maxLength = new Condition(ConditionProperty.length, 30, Comparer.lte);
 const allowedValues = new Condition(ConditionProperty.value, ["AA", "BB"], Comparer.in);
@@ -140,7 +142,7 @@ Create Matchy after Angular has initialized the container. Use your own componen
 
 ```ts
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
-import { Matchy, Option, FieldType } from "csv_matchy";
+import { Matchy, Option, FieldType } from "sheet-matchy";
 
 @Component({
   selector: "app-spreadsheet-import",
@@ -167,7 +169,7 @@ Mount the component with a ref and remove it when the effect cleans up. This als
 
 ```tsx
 import { useEffect, useRef } from "react";
-import { Matchy, Option, FieldType } from "csv_matchy";
+import { Matchy, Option, FieldType } from "sheet-matchy";
 
 export function SpreadsheetImport() {
   const container = useRef<HTMLDivElement>(null);
@@ -203,7 +205,7 @@ Each call clears the cells marked by the previous one, so the table always shows
 
 ### Demo
 
-The [live demo](https://raoufghrissi.github.io/csv_matchy/) is built from [`demo/`](demo/) and deployed to GitHub Pages from `main`. Run it locally with `npm run demo`.
+The [live demo](https://raoufghrissi.github.io/sheet-matchy/) is built from [`demo/`](demo/) and deployed to GitHub Pages from `main`. Run it locally with `npm run demo`.
 
 ## Contributing
 
